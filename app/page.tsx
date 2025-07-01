@@ -6,7 +6,7 @@ import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, FileText, Settings } from 'lucide-react';
+import { AlertCircle, FileText, Settings, RefreshCw } from 'lucide-react';
 
 interface AppState {
   tree: TreeNode[];
@@ -48,6 +48,17 @@ export default function Home() {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
+      // First validate repository access
+      const validation = await githubClient.validateRepository();
+      if (!validation.valid) {
+        setState(prev => ({
+          ...prev,
+          error: validation.error || 'Repository validation failed',
+          isLoading: false,
+        }));
+        return;
+      }
+
       const tree = await githubClient.buildFileTree();
       setState(prev => ({ ...prev, tree, isLoading: false }));
 
@@ -133,16 +144,31 @@ export default function Home() {
       <div className="min-h-screen flex flex-col">
         <Navbar siteName={siteName} githubUrl={githubUrl} />
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="max-w-md w-full text-center">
+          <div className="max-w-lg w-full text-center">
             <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-8">
               <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
               <h2 className="text-xl font-semibold text-foreground mb-2">
                 Failed to Load Documentation
               </h2>
-              <p className="text-muted-foreground mb-6">{state.error}</p>
-              <Button onClick={loadFileTree} className="flex items-center space-x-2">
-                <span>Retry</span>
-              </Button>
+              <p className="text-muted-foreground mb-6 text-left bg-muted/50 rounded p-4 text-sm">
+                {state.error}
+              </p>
+              <div className="space-y-4">
+                <Button onClick={loadFileTree} className="flex items-center space-x-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Retry</span>
+                </Button>
+                <div className="text-left bg-muted rounded p-4 text-sm">
+                  <p className="font-medium mb-2">Common solutions:</p>
+                  <ul className="space-y-1 text-muted-foreground">
+                    <li>• Verify the repository owner and name are correct</li>
+                    <li>• Check that the repository exists and is public</li>
+                    <li>• For private repos, ensure you have a valid GitHub token</li>
+                    <li>• Confirm the docs folder exists in your repository</li>
+                    <li>• Check your internet connection</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>

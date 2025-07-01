@@ -52,14 +52,27 @@ class GitHubAPI {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(`Documentation folder '${this.config.docsPath}' not found in repository`);
+          if (path === '') {
+            throw new Error(`Repository '${this.config.owner}/${this.config.repo}' or documentation folder '${this.config.docsPath}' not found. Please verify your GitHub repository settings.`);
+          } else {
+            throw new Error(`Documentation folder '${fullPath}' not found in repository`);
+          }
         }
-        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
+        if (response.status === 403) {
+          throw new Error(`Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`);
+        }
+        if (response.status === 401) {
+          throw new Error(`Authentication failed. Please check your GitHub token if accessing a private repository.`);
+        }
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}. Please check your repository configuration.`);
       }
 
       const data = await response.json();
       return Array.isArray(data) ? data : [];
     } catch (error) {
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error(`Network error: Unable to connect to GitHub API. Please check your internet connection and verify that the repository '${this.config.owner}/${this.config.repo}' exists and is accessible.`);
+      }
       console.error('Error fetching GitHub contents:', error);
       throw error;
     }
@@ -73,6 +86,9 @@ class GitHubAPI {
       }
       return await response.text();
     } catch (error) {
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Network error: Unable to fetch file content. Please check your internet connection.');
+      }
       console.error('Error fetching file content:', error);
       throw error;
     }
@@ -109,6 +125,48 @@ class GitHubAPI {
       }
       return a.name.localeCompare(b.name);
     });
+  }
+
+  // Method to validate repository access
+  async validateRepository(): Promise<{ valid: boolean; error?: string }> {
+    try {
+      const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}`;
+      const response = await fetch(url, {
+        headers: this.getHeaders(),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            valid: false,
+            error: `Repository '${this.config.owner}/${this.config.repo}' not found. Please verify the repository owner and name.`
+          };
+        }
+        if (response.status === 403) {
+          return {
+            valid: false,
+            error: `Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`
+          };
+        }
+        return {
+          valid: false,
+          error: `GitHub API error: ${response.status} ${response.statusText}`
+        };
+      }
+
+      return { valid: true };
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          valid: false,
+          error: 'Network error: Unable to connect to GitHub API. Please check your internet connection.'
+        };
+      }
+      return {
+        valid: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
   }
 }
 
