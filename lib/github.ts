@@ -78,13 +78,36 @@ class GitHubAPI {
     }
   }
 
-  async fetchFileContent(downloadUrl: string): Promise<string> {
+  async fetchFileContent(filePath: string): Promise<string> {
+    const fullPath = `${this.config.docsPath}/${filePath}`;
+    const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
+
     try {
-      const response = await fetch(downloadUrl);
+      const response = await fetch(url, {
+        headers: this.getHeaders(),
+      });
+
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(`File '${filePath}' not found in repository`);
+        }
+        if (response.status === 403) {
+          throw new Error(`Access denied to file '${filePath}'. If this is a private repository, please ensure you have set a valid GitHub token.`);
+        }
+        if (response.status === 401) {
+          throw new Error(`Authentication failed. Please check your GitHub token if accessing a private repository.`);
+        }
         throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
       }
-      return await response.text();
+
+      const data = await response.json();
+      
+      // GitHub API returns file content as base64 encoded
+      if (data.content && data.encoding === 'base64') {
+        return atob(data.content.replace(/\n/g, ''));
+      } else {
+        throw new Error(`Unexpected file content format for '${filePath}'`);
+      }
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
         throw new Error('Network error: Unable to fetch file content. Please check your internet connection.');

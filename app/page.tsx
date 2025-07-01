@@ -13,7 +13,6 @@ interface AppState {
   selectedFile: {
     path: string;
     content: string;
-    downloadUrl: string;
   } | null;
   isLoading: boolean;
   error: string | null;
@@ -65,7 +64,7 @@ export default function Home() {
       // Auto-select first markdown file if available
       const firstMarkdownFile = findFirstMarkdownFile(tree);
       if (firstMarkdownFile) {
-        await loadFile(firstMarkdownFile.path, firstMarkdownFile.download_url!);
+        await loadFile(firstMarkdownFile.path);
       }
     } catch (error) {
       setState(prev => ({
@@ -78,7 +77,7 @@ export default function Home() {
 
   const findFirstMarkdownFile = (nodes: TreeNode[]): TreeNode | null => {
     for (const node of nodes) {
-      if (node.type === 'file' && /\.(md|mdx)$/i.test(node.name) && node.download_url) {
+      if (node.type === 'file' && /\.(md|mdx)$/i.test(node.name)) {
         return node;
       }
       if (node.type === 'dir' && node.children) {
@@ -89,14 +88,14 @@ export default function Home() {
     return null;
   };
 
-  const loadFile = async (path: string, downloadUrl: string) => {
+  const loadFile = async (path: string) => {
     if (!githubClient) return;
 
     try {
-      const content = await githubClient.fetchFileContent(downloadUrl);
+      const content = await githubClient.fetchFileContent(path);
       setState(prev => ({
         ...prev,
-        selectedFile: { path, content, downloadUrl },
+        selectedFile: { path, content },
       }));
     } catch (error) {
       setState(prev => ({
@@ -189,7 +188,7 @@ export default function Home() {
         <Sidebar
           tree={state.tree}
           selectedPath={state.selectedFile?.path}
-          onFileSelect={loadFile}
+          onFileSelect={(path) => loadFile(path)}
           isLoading={state.isLoading}
         />
         
