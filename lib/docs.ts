@@ -10,8 +10,10 @@ export interface DocsFile {
 }
 
 export interface DocsConfig {
-  source: 'local' | 'github';
+  source: 'local' | 'github' | 'hybrid';
   path?: string;
+  hasLocal: boolean;
+  hasGitHub: boolean;
 }
 
 class LocalDocsAPI {
@@ -119,90 +121,97 @@ export class DocsProvider {
   constructor() {
     this.localAPI = new LocalDocsAPI();
     this.githubAPI = createGitHubClient();
-    this.config = { source: 'local' };
+    this.config = { source: 'local', hasLocal: false, hasGitHub: false };
   }
 
   async initialize(): Promise<DocsConfig> {
     console.log('🔍 Initializing DocsProvider...');
     
-    // First, try to use local docs
+    // Check both local and GitHub availability
     console.log('📁 Checking for local docs folder...');
     const localValidation = await this.localAPI.validateDocsFolder();
     
-    if (localValidation.valid) {
-      console.log('✅ Local docs folder found and validated. Using local source.');
-      this.config = { source: 'local', path: 'docs' };
-      return this.config;
+    console.log('🔍 Checking GitHub configuration...');
+    let githubValidation = { valid: false, error: 'GitHub not configured' };
+    
+    if (this.githubAPI) {
+      console.log(`📍 Repository: ${process.env.GITHUB_REPO_OWNER}/${process.env.GITHUB_REPO_NAME}`);
+      console.log(`📂 Docs path: ${process.env.GITHUB_DOCS_PATH || 'docs'}`);
+      console.log(`🔑 Token provided: ${process.env.GITHUB_TOKEN ? 'Yes' : 'No'}`);
+      
+      try {
+        githubValidation = await this.githubAPI.validateRepository();
+      } catch (error: any) {
+        githubValidation = { valid: false, error: error.message };
+      }
     } else {
-      console.log(`❌ Local docs validation failed: ${localValidation.error}`);
-      console.log('🔄 Attempting GitHub fallback...');
-    }
-
-    // If local docs not available, try GitHub
-    if (!this.githubAPI) {
       const missingVars = [];
       if (!process.env.GITHUB_REPO_OWNER) missingVars.push('GITHUB_REPO_OWNER');
       if (!process.env.GITHUB_REPO_NAME) missingVars.push('GITHUB_REPO_NAME');
-      
-      console.error(`❌ GitHub client not initialized. Missing environment variables: ${missingVars.join(', ')}`);
-      
-      throw new Error(`No valid documentation source found. Local docs failed: ${localValidation.error}. GitHub unavailable: Missing required environment variables (${missingVars.join(', ')}). Please ensure you have either a local "docs" folder or valid GitHub configuration.`);
+      githubValidation = { 
+        valid: false, 
+        error: `Missing environment variables: ${missingVars.join(', ')}` 
+      };
     }
 
-    console.log('🔍 Validating GitHub repository access...');
-    console.log(`📍 Repository: ${process.env.GITHUB_REPO_OWNER}/${process.env.GITHUB_REPO_NAME}`);
-    console.log(`📂 Docs path: ${process.env.GITHUB_DOCS_PATH || 'docs'}`);
-    console.log(`🔑 Token provided: ${process.env.GITHUB_TOKEN ? 'Yes' : 'No'}`);
-    
-    try {
-      const githubValidation = await this.githubAPI.validateRepository();
-      if (githubValidation.valid) {
-        console.log('✅ GitHub repository validated successfully. Using GitHub source.');
-        this.config = { source: 'github' };
-        return this.config;
-      } else {
-        console.error(`❌ GitHub repository validation failed: ${githubValidation.error}`);
-        
-        throw new Error(`No valid documentation source found. Local docs failed: ${localValidation.error}. GitHub validation failed: ${githubValidation.error}. Please ensure you have either a local "docs" folder or valid GitHub configuration with proper access permissions.`);
-      }
-    } catch (error: any) {
-      console.error('❌ Error during GitHub validation:', error);
+    // Determine configuration based on what's available
+    const hasLocal = localValidation.valid;
+    const hasGitHub = githubValidation.valid;
+
+    if (hasLocal && hasGitHub) {
+      console.log('✅ Both local docs and GitHub are available. Using hybrid mode with local priority.');
+      this.config = { source: 'hybrid', path: 'docs', hasLocal: true, hasGitHub: true };
+    } else if (hasLocal) {
+      console.log('✅ Local docs folder found and validated. Using local source.');
+      console.log(`ℹ️ GitHub unavailable: ${githubValidation.error}`);
+      this.config = { source: 'local', path: 'docs', hasLocal: true, hasGitHub: false };
+    } else if (hasGitHub) {
+      console.log('✅ GitHub repository validated successfully. Using GitHub source.');
+      console.log(`ℹ️ Local docs unavailable: ${localValidation.error}`);
+      this.config = { source: 'github', hasLocal: false, hasGitHub: true };
+    } else {
+      console.error('❌ No valid documentation source found.');
+      console.error(`Local docs failed: ${localValidation.error}`);
+      console.error(`GitHub failed: ${githubValidation.error}`);
       
-      throw new Error(`No valid documentation source found. Local docs failed: ${localValidation.error}. GitHub error: ${error.message}. Please ensure you have either a local "docs" folder or valid GitHub configuration.`);
+      throw new Error(`No valid documentation source found. Local docs: ${localValidation.error}. GitHub: ${githubValidation.error}. Please ensure you have either a local "docs" folder or valid GitHub configuration.`);
     }
+
+    return this.config;
   }
 
   async buildFileTree(): Promise<DocsFile[]> {
-    if (this.config.source === 'local') {
+    // Try local first if available
+    if (this.config.hasLocal) {
       try {
+        console.log('📁 Building file tree from local docs...');
         return await this.localAPI.buildFileTree();
       } catch (error: any) {
-        // If ENOENT error occurs, try to fallback to GitHub
-        if (error.code === 'ENOENT' && this.githubAPI) {
-          console.log('🔄 Local docs became unavailable, attempting GitHub fallback...');
+        console.warn('⚠️ Local docs failed, trying GitHub fallback...', error.message);
+        
+        // If local fails and we have GitHub, try GitHub
+        if (this.config.hasGitHub && this.githubAPI) {
           try {
-            const githubValidation = await this.githubAPI.validateRepository();
-            if (githubValidation.valid) {
-              console.log('✅ Successfully switched to GitHub source.');
-              this.config = { source: 'github' };
-              const githubTree = await this.githubAPI.buildFileTree();
-              // Convert GitHub tree format to our format
-              return githubTree.map((node: any) => ({
-                name: node.name,
-                path: node.path,
-                type: node.type,
-                children: node.children
-              }));
-            }
+            console.log('🔄 Switching to GitHub source...');
+            const githubTree = await this.githubAPI.buildFileTree();
+            return githubTree.map((node: any) => ({
+              name: node.name,
+              path: node.path,
+              type: node.type,
+              children: node.children
+            }));
           } catch (githubError) {
-            console.error('❌ GitHub fallback failed:', githubError);
+            console.error('❌ GitHub fallback also failed:', githubError);
           }
         }
         throw error;
       }
-    } else {
+    }
+    
+    // Use GitHub if local not available
+    if (this.config.hasGitHub && this.githubAPI) {
+      console.log('📁 Building file tree from GitHub...');
       const githubTree = await this.githubAPI.buildFileTree();
-      // Convert GitHub tree format to our format
       return githubTree.map((node: any) => ({
         name: node.name,
         path: node.path,
@@ -210,36 +219,48 @@ export class DocsProvider {
         children: node.children
       }));
     }
+
+    throw new Error('No documentation source available');
   }
 
   async fetchFileContent(filePath: string): Promise<string> {
-    if (this.config.source === 'local') {
+    // Try local first if available
+    if (this.config.hasLocal) {
       try {
+        console.log(`📄 Fetching file from local docs: ${filePath}`);
         return await this.localAPI.fetchFileContent(filePath);
       } catch (error: any) {
-        // If ENOENT error occurs, try to fallback to GitHub
-        if (error.code === 'ENOENT' && this.githubAPI) {
-          console.log('🔄 Local docs became unavailable, attempting GitHub fallback...');
+        console.warn(`⚠️ Local file fetch failed, trying GitHub fallback...`, error.message);
+        
+        // If local fails and we have GitHub, try GitHub
+        if (this.config.hasGitHub && this.githubAPI) {
           try {
-            const githubValidation = await this.githubAPI.validateRepository();
-            if (githubValidation.valid) {
-              console.log('✅ Successfully switched to GitHub source.');
-              this.config = { source: 'github' };
-              return await this.githubAPI.fetchFileContent(filePath);
-            }
+            console.log(`🔄 Fetching file from GitHub: ${filePath}`);
+            return await this.githubAPI.fetchFileContent(filePath);
           } catch (githubError) {
-            console.error('❌ GitHub fallback failed:', githubError);
+            console.error('❌ GitHub fallback also failed:', githubError);
           }
         }
         throw error;
       }
-    } else {
+    }
+    
+    // Use GitHub if local not available
+    if (this.config.hasGitHub && this.githubAPI) {
+      console.log(`📄 Fetching file from GitHub: ${filePath}`);
       return await this.githubAPI.fetchFileContent(filePath);
     }
+
+    throw new Error('No documentation source available');
   }
 
   getSourceInfo(): { source: string; description: string } {
-    if (this.config.source === 'local') {
+    if (this.config.source === 'hybrid') {
+      return {
+        source: 'Hybrid',
+        description: 'Local docs with GitHub fallback'
+      };
+    } else if (this.config.source === 'local') {
       return {
         source: 'Local',
         description: 'Reading from local docs folder'
