@@ -35,15 +35,15 @@ cp .env.example .env.local
 
 ```env
 # Required: Your GitHub repository details
-NEXT_PUBLIC_GITHUB_REPO_OWNER=your-github-username
-NEXT_PUBLIC_GITHUB_REPO_NAME=your-repo-name
-NEXT_PUBLIC_GITHUB_DOCS_PATH=docs
+GITHUB_REPO_OWNER=your-github-username
+GITHUB_REPO_NAME=your-repo-name
+GITHUB_DOCS_PATH=docs
 
 # Optional: For private repositories
-NEXT_PUBLIC_GITHUB_TOKEN=ghp_your_token_here
+GITHUB_TOKEN=ghp_your_token_here
 
 # Optional: Site customization
-NEXT_PUBLIC_SITE_NAME=My Documentation
+SITE_NAME=My Documentation
 SITE_DESCRIPTION=Documentation for my project
 ```
 
@@ -57,7 +57,7 @@ Visit `http://localhost:3000` to see your documentation site!
 
 ## 📁 Repository Structure
 
-Your GitHub repository should have a `docs` folder (or whatever you specify in `NEXT_PUBLIC_GITHUB_DOCS_PATH`) with Markdown files:
+Your GitHub repository should have a `docs` folder (or whatever you specify in `GITHUB_DOCS_PATH`) with Markdown files:
 
 ```
 your-repo/
@@ -79,11 +79,11 @@ your-repo/
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `NEXT_PUBLIC_GITHUB_REPO_OWNER` | ✅ | GitHub username or organization |
-| `NEXT_PUBLIC_GITHUB_REPO_NAME` | ✅ | Repository name |
-| `NEXT_PUBLIC_GITHUB_DOCS_PATH` | ✅ | Path to docs folder (usually `docs`) |
-| `NEXT_PUBLIC_GITHUB_TOKEN` | ❌ | GitHub personal access token (required for private repos) |
-| `NEXT_PUBLIC_SITE_NAME` | ❌ | Site title (default: "DocsDeploy") |
+| `GITHUB_REPO_OWNER` | ✅ | GitHub username or organization |
+| `GITHUB_REPO_NAME` | ✅ | Repository name |
+| `GITHUB_DOCS_PATH` | ✅ | Path to docs folder (usually `docs`) |
+| `GITHUB_TOKEN` | ❌ | GitHub personal access token (required for private repos) |
+| `SITE_NAME` | ❌ | Site title (default: "DocsDeploy") |
 | `SITE_DESCRIPTION` | ❌ | Site description for SEO |
 
 ### GitHub Token Setup
