@@ -1,3 +1,6 @@
+import https from 'https';
+import { URL } from 'url';
+
 export interface GitHubFile {
   name: string;
   path: string;
@@ -41,38 +44,66 @@ class GitHubAPI {
     return headers;
   }
 
+  private async makeRequest(url: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const parsedUrl = new URL(url);
+      const options = {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port || 443,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: 'GET',
+        headers: this.getHeaders()
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          try {
+            const jsonData = JSON.parse(data);
+            
+            if (res.statusCode && res.statusCode >= 400) {
+              const error = new Error();
+              if (res.statusCode === 404) {
+                error.message = `Repository '${this.config.owner}/${this.config.repo}' or documentation folder not found. Please verify your GitHub repository settings.`;
+              } else if (res.statusCode === 403) {
+                error.message = `Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`;
+              } else if (res.statusCode === 401) {
+                error.message = `Authentication failed. Please check your GitHub token if accessing a private repository.`;
+              } else {
+                error.message = `GitHub API error: ${res.statusCode} ${res.statusMessage}. Please check your repository configuration.`;
+              }
+              reject(error);
+              return;
+            }
+
+            resolve(jsonData);
+          } catch (parseError) {
+            reject(new Error(`Failed to parse JSON response: ${parseError}`));
+          }
+        });
+      });
+
+      req.on('error', (error) => {
+        reject(new Error(`Network error: Unable to connect to GitHub API. ${error.message}`));
+      });
+
+      req.end();
+    });
+  }
+
   async fetchContents(path: string = ''): Promise<GitHubFile[]> {
     const fullPath = path ? `${this.config.docsPath}/${path}` : this.config.docsPath;
     const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
 
     try {
-      const response = await fetch(url, {
-        headers: this.getHeaders(),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          if (path === '') {
-            throw new Error(`Repository '${this.config.owner}/${this.config.repo}' or documentation folder '${this.config.docsPath}' not found. Please verify your GitHub repository settings.`);
-          } else {
-            throw new Error(`Documentation folder '${fullPath}' not found in repository`);
-          }
-        }
-        if (response.status === 403) {
-          throw new Error(`Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`);
-        }
-        if (response.status === 401) {
-          throw new Error(`Authentication failed. Please check your GitHub token if accessing a private repository.`);
-        }
-        throw new Error(`GitHub API error: ${response.status} ${response.statusText}. Please check your repository configuration.`);
-      }
-
-      const data = await response.json();
+      const data = await this.makeRequest(url);
       return Array.isArray(data) ? data : [];
     } catch (error) {
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error(`Network error: Unable to connect to GitHub API. Please check your internet connection and verify that the repository '${this.config.owner}/${this.config.repo}' exists and is accessible.`);
-      }
       console.error('Error fetching GitHub contents:', error);
       throw error;
     }
@@ -83,35 +114,15 @@ class GitHubAPI {
     const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
 
     try {
-      const response = await fetch(url, {
-        headers: this.getHeaders(),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error(`File '${filePath}' not found in repository`);
-        }
-        if (response.status === 403) {
-          throw new Error(`Access denied to file '${filePath}'. If this is a private repository, please ensure you have set a valid GitHub token.`);
-        }
-        if (response.status === 401) {
-          throw new Error(`Authentication failed. Please check your GitHub token if accessing a private repository.`);
-        }
-        throw new Error(`Failed to fetch file: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await this.makeRequest(url);
       
       // GitHub API returns file content as base64 encoded
       if (data.content && data.encoding === 'base64') {
-        return atob(data.content.replace(/\n/g, ''));
+        return Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
       } else {
         throw new Error(`Unexpected file content format for '${filePath}'`);
       }
     } catch (error) {
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        throw new Error('Network error: Unable to fetch file content. Please check your internet connection.');
-      }
       console.error('Error fetching file content:', error);
       throw error;
     }
@@ -154,37 +165,9 @@ class GitHubAPI {
   async validateRepository(): Promise<{ valid: boolean; error?: string }> {
     try {
       const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}`;
-      const response = await fetch(url, {
-        headers: this.getHeaders(),
-      });
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          return {
-            valid: false,
-            error: `Repository '${this.config.owner}/${this.config.repo}' not found. Please verify the repository owner and name.`
-          };
-        }
-        if (response.status === 403) {
-          return {
-            valid: false,
-            error: `Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`
-          };
-        }
-        return {
-          valid: false,
-          error: `GitHub API error: ${response.status} ${response.statusText}`
-        };
-      }
-
+      await this.makeRequest(url);
       return { valid: true };
     } catch (error) {
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        return {
-          valid: false,
-          error: 'Network error: Unable to connect to GitHub API. Please check your internet connection.'
-        };
-      }
       return {
         valid: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -194,25 +177,15 @@ class GitHubAPI {
 }
 
 export function createGitHubClient(): GitHubAPI | null {
-  const owner = process.env.NEXT_PUBLIC_GITHUB_REPO_OWNER;
-  const repo = process.env.NEXT_PUBLIC_GITHUB_REPO_NAME;
-  const docsPath = process.env.NEXT_PUBLIC_GITHUB_DOCS_PATH || 'docs';
-  const token = process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+  const owner = process.env.GITHUB_REPO_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME;
+  const docsPath = process.env.GITHUB_DOCS_PATH || 'docs';
+  const token = process.env.GITHUB_TOKEN;
 
   if (!owner || !repo) {
-    console.error('GitHub configuration missing. Please set NEXT_PUBLIC_GITHUB_REPO_OWNER and NEXT_PUBLIC_GITHUB_REPO_NAME in your environment variables.');
+    console.error('GitHub configuration missing. Please set GITHUB_REPO_OWNER and GITHUB_REPO_NAME in your environment variables.');
     return null;
   }
 
   return new GitHubAPI({ owner, repo, docsPath, token });
-}
-
-export function getGitHubEditUrl(filePath: string): string {
-  const owner = process.env.NEXT_PUBLIC_GITHUB_REPO_OWNER;
-  const repo = process.env.NEXT_PUBLIC_GITHUB_REPO_NAME;
-  const docsPath = process.env.NEXT_PUBLIC_GITHUB_DOCS_PATH || 'docs';
-  
-  if (!owner || !repo) return '';
-  
-  return `https://github.com/${owner}/${repo}/edit/main/${docsPath}/${filePath}`;
 }
