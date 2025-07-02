@@ -14,6 +14,28 @@
   # GITHUB_DOCS_PATH = "docs"
   # GITHUB_TOKEN = "your-github-token-here"  # Only for private repos
 
+# CRITICAL: API redirects must come BEFORE the catch-all redirect
+[[redirects]]
+  from = "/api/docs/info"
+  to = "/.netlify/functions/docs-info"
+  status = 200
+
+[[redirects]]
+  from = "/api/docs/tree"
+  to = "/.netlify/functions/docs-tree"
+  status = 200
+
+[[redirects]]
+  from = "/api/docs/file"
+  to = "/.netlify/functions/docs-file"
+  status = 200
+
+[[redirects]]
+  from = "/api/markdown/parse"
+  to = "/.netlify/functions/markdown-parse"
+  status = 200
+
+# Catch-all redirect for SPA routing (must be LAST)
 [[redirects]]
   from = "/*"
   to = "/index.html"
