@@ -55,7 +55,7 @@ class DocApp {
 
   async loadSourceInfo() {
     try {
-      const response = await fetch('/.netlify/functions/docs-info');
+      const response = await fetch('/api/docs/info');
       const data = await response.json();
       
       if (response.ok) {
@@ -77,7 +77,7 @@ class DocApp {
     }
     
     try {
-      const response = await fetch('/.netlify/functions/docs-tree');
+      const response = await fetch('/api/docs/tree');
       const data = await response.json();
       
       if (!response.ok) {
@@ -126,7 +126,7 @@ class DocApp {
     try {
       this.setState({ currentPath: path });
       
-      const response = await fetch(`/.netlify/functions/docs-file?path=${encodeURIComponent(path)}`);
+      const response = await fetch(`/api/docs/file?path=${encodeURIComponent(path)}`);
       const data = await response.json();
       
       if (!response.ok) {
@@ -134,7 +134,7 @@ class DocApp {
       }
       
       // Parse markdown
-      const markdownResponse = await fetch('/.netlify/functions/markdown-parse', {
+      const markdownResponse = await fetch('/api/markdown/parse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: data.content })
