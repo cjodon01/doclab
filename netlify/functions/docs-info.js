@@ -17,21 +17,27 @@ exports.handler = async (event, context) => {
     };
   }
 
+  console.log('ℹ️ Netlify Function: docs-info called');
+
   try {
     const docsProvider = createDocsProvider();
     
     if (!docsProvider) {
+      console.error('❌ Failed to create docs provider');
       return {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
-          error: 'Documentation provider not initialized' 
+          error: 'Documentation provider not initialized. Please check your GitHub configuration.' 
         })
       };
     }
 
+    console.log('🔄 Initializing docs provider...');
     await docsProvider.initialize();
+    
     const sourceInfo = docsProvider.getSourceInfo();
+    console.log(`✅ Source info: ${sourceInfo.source} - ${sourceInfo.description}`);
     
     return {
       statusCode: 200,
@@ -39,12 +45,13 @@ exports.handler = async (event, context) => {
       body: JSON.stringify(sourceInfo)
     };
   } catch (error) {
-    console.error('Error getting docs info:', error);
+    console.error('❌ Error in docs-info function:', error);
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Failed to get docs info' 
+        error: error instanceof Error ? error.message : 'Failed to get docs info',
+        details: 'Check Netlify function logs for more information'
       })
     };
   }
