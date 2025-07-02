@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -29,136 +20,126 @@ class GitHubAPI {
         }
         return headers;
     }
-    makeRequest(url) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return new Promise((resolve, reject) => {
-                const parsedUrl = new url_1.URL(url);
-                const options = {
-                    hostname: parsedUrl.hostname,
-                    port: parsedUrl.port || 443,
-                    path: parsedUrl.pathname + parsedUrl.search,
-                    method: 'GET',
-                    headers: this.getHeaders()
-                };
-                const req = https_1.default.request(options, (res) => {
-                    let data = '';
-                    res.on('data', (chunk) => {
-                        data += chunk;
-                    });
-                    res.on('end', () => {
-                        try {
-                            const jsonData = JSON.parse(data);
-                            if (res.statusCode && res.statusCode >= 400) {
-                                const error = new Error();
-                                if (res.statusCode === 404) {
-                                    error.message = `Repository '${this.config.owner}/${this.config.repo}' or documentation folder not found. Please verify your GitHub repository settings.`;
-                                }
-                                else if (res.statusCode === 403) {
-                                    error.message = `Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`;
-                                }
-                                else if (res.statusCode === 401) {
-                                    error.message = `Authentication failed. Please check your GitHub token if accessing a private repository.`;
-                                }
-                                else {
-                                    error.message = `GitHub API error: ${res.statusCode} ${res.statusMessage}. Please check your repository configuration.`;
-                                }
-                                reject(error);
-                                return;
-                            }
-                            resolve(jsonData);
-                        }
-                        catch (parseError) {
-                            reject(new Error(`Failed to parse JSON response: ${parseError}`));
-                        }
-                    });
+    async makeRequest(url) {
+        return new Promise((resolve, reject) => {
+            const parsedUrl = new url_1.URL(url);
+            const options = {
+                hostname: parsedUrl.hostname,
+                port: parsedUrl.port || 443,
+                path: parsedUrl.pathname + parsedUrl.search,
+                method: 'GET',
+                headers: this.getHeaders()
+            };
+            const req = https_1.default.request(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
                 });
-                req.on('error', (error) => {
-                    reject(new Error(`Network error: Unable to connect to GitHub API. ${error.message}`));
-                });
-                req.end();
-            });
-        });
-    }
-    fetchContents() {
-        return __awaiter(this, arguments, void 0, function* (path = '') {
-            const fullPath = path ? `${this.config.docsPath}/${path}` : this.config.docsPath;
-            const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
-            try {
-                const data = yield this.makeRequest(url);
-                return Array.isArray(data) ? data : [];
-            }
-            catch (error) {
-                console.error('Error fetching GitHub contents:', error);
-                throw error;
-            }
-        });
-    }
-    fetchFileContent(filePath) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const fullPath = `${this.config.docsPath}/${filePath}`;
-            const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
-            try {
-                const data = yield this.makeRequest(url);
-                // GitHub API returns file content as base64 encoded
-                if (data.content && data.encoding === 'base64') {
-                    return Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
-                }
-                else {
-                    throw new Error(`Unexpected file content format for '${filePath}'`);
-                }
-            }
-            catch (error) {
-                console.error('Error fetching file content:', error);
-                throw error;
-            }
-        });
-    }
-    buildFileTree() {
-        return __awaiter(this, arguments, void 0, function* (path = '') {
-            const contents = yield this.fetchContents(path);
-            const tree = [];
-            for (const item of contents) {
-                const node = {
-                    name: item.name,
-                    path: item.path.replace(`${this.config.docsPath}/`, ''),
-                    type: item.type,
-                    download_url: item.download_url,
-                };
-                if (item.type === 'dir') {
+                res.on('end', () => {
                     try {
-                        node.children = yield this.buildFileTree(node.path);
+                        const jsonData = JSON.parse(data);
+                        if (res.statusCode && res.statusCode >= 400) {
+                            const error = new Error();
+                            if (res.statusCode === 404) {
+                                error.message = `Repository '${this.config.owner}/${this.config.repo}' or documentation folder not found. Please verify your GitHub repository settings.`;
+                            }
+                            else if (res.statusCode === 403) {
+                                error.message = `Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`;
+                            }
+                            else if (res.statusCode === 401) {
+                                error.message = `Authentication failed. Please check your GitHub token if accessing a private repository.`;
+                            }
+                            else {
+                                error.message = `GitHub API error: ${res.statusCode} ${res.statusMessage}. Please check your repository configuration.`;
+                            }
+                            reject(error);
+                            return;
+                        }
+                        resolve(jsonData);
                     }
-                    catch (error) {
-                        console.warn(`Failed to fetch contents of directory ${node.path}:`, error);
-                        node.children = [];
+                    catch (parseError) {
+                        reject(new Error(`Failed to parse JSON response: ${parseError}`));
                     }
-                }
-                tree.push(node);
-            }
-            // Sort: directories first, then files, both alphabetically
-            return tree.sort((a, b) => {
-                if (a.type !== b.type) {
-                    return a.type === 'dir' ? -1 : 1;
-                }
-                return a.name.localeCompare(b.name);
+                });
             });
+            req.on('error', (error) => {
+                reject(new Error(`Network error: Unable to connect to GitHub API. ${error.message}`));
+            });
+            req.end();
+        });
+    }
+    async fetchContents(path = '') {
+        const fullPath = path ? `${this.config.docsPath}/${path}` : this.config.docsPath;
+        const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
+        try {
+            const data = await this.makeRequest(url);
+            return Array.isArray(data) ? data : [];
+        }
+        catch (error) {
+            console.error('Error fetching GitHub contents:', error);
+            throw error;
+        }
+    }
+    async fetchFileContent(filePath) {
+        const fullPath = `${this.config.docsPath}/${filePath}`;
+        const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
+        try {
+            const data = await this.makeRequest(url);
+            // GitHub API returns file content as base64 encoded
+            if (data.content && data.encoding === 'base64') {
+                return Buffer.from(data.content.replace(/\n/g, ''), 'base64').toString('utf8');
+            }
+            else {
+                throw new Error(`Unexpected file content format for '${filePath}'`);
+            }
+        }
+        catch (error) {
+            console.error('Error fetching file content:', error);
+            throw error;
+        }
+    }
+    async buildFileTree(path = '') {
+        const contents = await this.fetchContents(path);
+        const tree = [];
+        for (const item of contents) {
+            const node = {
+                name: item.name,
+                path: item.path.replace(`${this.config.docsPath}/`, ''),
+                type: item.type,
+                download_url: item.download_url,
+            };
+            if (item.type === 'dir') {
+                try {
+                    node.children = await this.buildFileTree(node.path);
+                }
+                catch (error) {
+                    console.warn(`Failed to fetch contents of directory ${node.path}:`, error);
+                    node.children = [];
+                }
+            }
+            tree.push(node);
+        }
+        // Sort: directories first, then files, both alphabetically
+        return tree.sort((a, b) => {
+            if (a.type !== b.type) {
+                return a.type === 'dir' ? -1 : 1;
+            }
+            return a.name.localeCompare(b.name);
         });
     }
     // Method to validate repository access
-    validateRepository() {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}`;
-                yield this.makeRequest(url);
-                return { valid: true };
-            }
-            catch (error) {
-                return {
-                    valid: false,
-                    error: error instanceof Error ? error.message : 'Unknown error occurred'
-                };
-            }
-        });
+    async validateRepository() {
+        try {
+            const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}`;
+            await this.makeRequest(url);
+            return { valid: true };
+        }
+        catch (error) {
+            return {
+                valid: false,
+                error: error instanceof Error ? error.message : 'Unknown error occurred'
+            };
+        }
     }
 }
 function createGitHubClient() {

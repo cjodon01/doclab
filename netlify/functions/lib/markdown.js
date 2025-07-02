@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -22,27 +13,25 @@ const remark_rehype_1 = __importDefault(require("remark-rehype"));
 const rehype_highlight_1 = __importDefault(require("rehype-highlight"));
 const rehype_raw_1 = __importDefault(require("rehype-raw"));
 const rehype_stringify_1 = __importDefault(require("rehype-stringify"));
-function parseMarkdown(content) {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const result = yield (0, unified_1.unified)()
-                .use(remark_parse_1.default)
-                .use(remark_gfm_1.default)
-                .use(remark_rehype_1.default, { allowDangerousHtml: true })
-                .use(rehype_raw_1.default)
-                .use(rehype_highlight_1.default, {
-                detect: true,
-                ignoreMissing: true,
-            })
-                .use(rehype_stringify_1.default)
-                .process(content);
-            return result.toString();
-        }
-        catch (error) {
-            console.error('Error parsing markdown:', error);
-            return `<p>Error parsing markdown content: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
-        }
-    });
+async function parseMarkdown(content) {
+    try {
+        const result = await (0, unified_1.unified)()
+            .use(remark_parse_1.default)
+            .use(remark_gfm_1.default)
+            .use(remark_rehype_1.default, { allowDangerousHtml: true })
+            .use(rehype_raw_1.default)
+            .use(rehype_highlight_1.default, {
+            detect: true,
+            ignoreMissing: true,
+        })
+            .use(rehype_stringify_1.default)
+            .process(content);
+        return result.toString();
+    }
+    catch (error) {
+        console.error('Error parsing markdown:', error);
+        return `<p>Error parsing markdown content: ${error instanceof Error ? error.message : 'Unknown error'}</p>`;
+    }
 }
 function extractTitle(content) {
     const lines = content.split('\n');

@@ -5,8 +5,10 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "ts-node server.ts",
-    "build": "rm -rf dist && npx tsc && cp -r public dist/ && mkdir -p netlify/functions/lib && cp -r dist/lib/* netlify/functions/lib/",
-    "clean": "rm -rf dist"
+    "build": "npm run build:server && npm run build:netlify",
+    "build:server": "rm -rf dist && npx tsc && cp -r public dist/",
+    "build:netlify": "rm -rf netlify/functions/lib && npx tsc -p tsconfig.functions.json",
+    "clean": "rm -rf dist netlify/functions/lib"
   },
   "dependencies": {
     "clsx": "^2.0.0",
