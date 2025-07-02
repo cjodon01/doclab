@@ -1,4 +1,4 @@
-const { createDocsProvider } = require('../../dist/lib/docs');
+const { createDocsProvider } = require('./lib/docs');
 
 exports.handler = async (event, context) => {
   // Enable CORS

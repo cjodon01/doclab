@@ -1,4 +1,4 @@
-const { parseMarkdown } = require('../../dist/lib/markdown');
+const { parseMarkdown } = require('./lib/markdown');
 
 exports.handler = async (event, context) => {
   // Enable CORS
