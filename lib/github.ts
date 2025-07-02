@@ -24,6 +24,11 @@ export interface GitHubConfig {
   token?: string;
 }
 
+interface GitHubFileResponse {
+  content: string;
+  encoding: string;
+}
+
 class GitHubAPI {
   private config: GitHubConfig;
 
@@ -31,7 +36,7 @@ class GitHubAPI {
     this.config = config;
   }
 
-  private getHeaders() {
+  private getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       'Accept': 'application/vnd.github.v3+json',
       'User-Agent': 'DocsDeploy/1.0',
@@ -101,7 +106,7 @@ class GitHubAPI {
     const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
 
     try {
-      const data = await this.makeRequest(url);
+      const data = await this.makeRequest(url) as GitHubFile[] | GitHubFile;
       return Array.isArray(data) ? data : [];
     } catch (error) {
       console.error('Error fetching GitHub contents:', error);
@@ -114,7 +119,7 @@ class GitHubAPI {
     const url = `https://api.github.com/repos/${this.config.owner}/${this.config.repo}/contents/${fullPath}`;
 
     try {
-      const data = await this.makeRequest(url);
+      const data = await this.makeRequest(url) as GitHubFileResponse;
       
       // GitHub API returns file content as base64 encoded
       if (data.content && data.encoding === 'base64') {
