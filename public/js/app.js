@@ -5,7 +5,8 @@ class DocApp {
       selectedFile: null,
       isLoading: false,
       error: null,
-      currentPath: null
+      currentPath: null,
+      sourceInfo: null
     };
     
     this.isInitialized = false;
@@ -20,6 +21,7 @@ class DocApp {
     try {
       this.bindEvents();
       this.render();
+      await this.loadSourceInfo();
       await this.loadFileTree();
       this.isInitialized = true;
     } catch (error) {
@@ -51,6 +53,19 @@ class DocApp {
     }
   }
 
+  async loadSourceInfo() {
+    try {
+      const response = await fetch('/api/docs/info');
+      const data = await response.json();
+      
+      if (response.ok) {
+        this.setState({ sourceInfo: data });
+      }
+    } catch (error) {
+      console.warn('Could not load source info:', error);
+    }
+  }
+
   async loadFileTree() {
     if (this.state.isLoading) return; // Prevent multiple simultaneous requests
     
@@ -62,7 +77,7 @@ class DocApp {
     }
     
     try {
-      const response = await fetch('/api/github/tree');
+      const response = await fetch('/api/docs/tree');
       const data = await response.json();
       
       if (!response.ok) {
@@ -111,7 +126,7 @@ class DocApp {
     try {
       this.setState({ currentPath: path });
       
-      const response = await fetch(`/api/github/file?path=${encodeURIComponent(path)}`);
+      const response = await fetch(`/api/docs/file?path=${encodeURIComponent(path)}`);
       const data = await response.json();
       
       if (!response.ok) {
@@ -204,6 +219,12 @@ class DocApp {
       refreshBtn.innerHTML = this.state.isLoading ? 
         '<span class="spinner"></span> Loading...' : 
         '🔄 Refresh';
+    }
+    
+    // Update sidebar header with source info
+    const sidebarHeader = document.querySelector('.sidebar-subtitle');
+    if (sidebarHeader && this.state.sourceInfo) {
+      sidebarHeader.textContent = this.state.sourceInfo.description;
     }
     
     // Render sidebar
