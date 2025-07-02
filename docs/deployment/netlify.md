@@ -228,10 +228,25 @@ This approach uses Netlify Functions to serve your documentation dynamically.
    ```json
    {
      "scripts": {
-       "build:netlify": "npm run build && cp -r public/* ."
+       "build:netlify": "npm run build && cp -r public/* . && cp -r docs netlify/functions/"
      }
    }
    ```
+
+#### Accessing Local Docs with Functions
+
+Netlify functions run from a bundled directory (`netlify/functions`) and cannot
+see files that are outside that folder at runtime. This means a function that
+expects to read from `docs/` will fail on Netlify even though it works locally
+with `netlify dev`. The build step above copies your local documentation into
+the function bundle so that the files are available when the function executes.
+
+If you prefer not to copy local files you have two alternatives:
+
+1. **Use GitHub-backed docs only** – configure the environment variables below
+   so the function pulls Markdown from your GitHub repository.
+2. **Build a static site instead** – follow Option 1 above and let Netlify serve
+   prebuilt HTML without using serverless functions.
 
 ### Step 2: Configure Environment Variables
 
