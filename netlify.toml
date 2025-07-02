@@ -6,6 +6,11 @@
 [build.environment]
   NODE_VERSION = "18"
   NPM_FLAGS = "--production=false"
+  # GitHub configuration - replace with your actual values
+  GITHUB_REPO_OWNER = "your-github-username"
+  GITHUB_REPO_NAME = "your-repository-name"
+  GITHUB_DOCS_PATH = "docs"
+  # GITHUB_TOKEN = "your-github-token-here"  # Uncomment for private repos
 
 [[redirects]]
   from = "/*"
