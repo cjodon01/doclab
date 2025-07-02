@@ -25,6 +25,8 @@ async function initializeDocsProvider() {
     console.log('Documentation provider initialized successfully');
   } catch (error) {
     console.error('Failed to initialize docs provider:', error);
+    // Re-throw the error to prevent server from starting with invalid configuration
+    throw error;
   }
 }
 
