@@ -28,7 +28,8 @@ exports.handler = async (event, context) => {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
-          error: 'Documentation provider not initialized. Please check your GitHub configuration.' 
+          error: 'Documentation provider not initialized. Please check your GitHub configuration.',
+          hint: 'Set GITHUB_REPO_OWNER and GITHUB_REPO_NAME in your Netlify dashboard'
         })
       };
     }
@@ -46,12 +47,20 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error('❌ Error in docs-info function:', error);
+    
+    let errorMessage = error instanceof Error ? error.message : 'Failed to get docs info';
+    let hint = 'Check Netlify function logs for more information';
+    
+    if (errorMessage.includes('Missing environment variables')) {
+      hint = 'Please set GITHUB_REPO_OWNER and GITHUB_REPO_NAME in your Netlify dashboard under Site settings > Environment variables';
+    }
+    
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Failed to get docs info',
-        details: 'Check Netlify function logs for more information'
+        error: errorMessage,
+        hint: hint
       })
     };
   }

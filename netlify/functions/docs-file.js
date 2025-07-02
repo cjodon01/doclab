@@ -27,7 +27,10 @@ exports.handler = async (event, context) => {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'File path is required' })
+        body: JSON.stringify({ 
+          error: 'File path is required',
+          hint: 'Please provide a valid file path in the query parameters'
+        })
       };
     }
 
@@ -41,7 +44,8 @@ exports.handler = async (event, context) => {
         statusCode: 500,
         headers,
         body: JSON.stringify({ 
-          error: 'Documentation provider not initialized. Please check your GitHub configuration.' 
+          error: 'Documentation provider not initialized. Please check your GitHub configuration.',
+          hint: 'Set GITHUB_REPO_OWNER and GITHUB_REPO_NAME in your Netlify dashboard'
         })
       };
     }
@@ -61,12 +65,22 @@ exports.handler = async (event, context) => {
     };
   } catch (error) {
     console.error('❌ Error in docs-file function:', error);
+    
+    let errorMessage = error instanceof Error ? error.message : 'Failed to load file';
+    let hint = 'Check Netlify function logs for more information';
+    
+    if (errorMessage.includes('not found')) {
+      hint = 'Please verify the file path exists in your documentation repository';
+    } else if (errorMessage.includes('Access denied')) {
+      hint = 'For private repositories, please set GITHUB_TOKEN in your Netlify environment variables';
+    }
+    
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Failed to load file',
-        details: 'Check Netlify function logs for more information'
+        error: errorMessage,
+        hint: hint
       })
     };
   }
