@@ -174,7 +174,32 @@ export class DocsProvider {
 
   async buildFileTree(): Promise<DocsFile[]> {
     if (this.config.source === 'local') {
-      return await this.localAPI.buildFileTree();
+      try {
+        return await this.localAPI.buildFileTree();
+      } catch (error: any) {
+        // If ENOENT error occurs, try to fallback to GitHub
+        if (error.code === 'ENOENT' && this.githubAPI) {
+          console.log('🔄 Local docs became unavailable, attempting GitHub fallback...');
+          try {
+            const githubValidation = await this.githubAPI.validateRepository();
+            if (githubValidation.valid) {
+              console.log('✅ Successfully switched to GitHub source.');
+              this.config = { source: 'github' };
+              const githubTree = await this.githubAPI.buildFileTree();
+              // Convert GitHub tree format to our format
+              return githubTree.map((node: any) => ({
+                name: node.name,
+                path: node.path,
+                type: node.type,
+                children: node.children
+              }));
+            }
+          } catch (githubError) {
+            console.error('❌ GitHub fallback failed:', githubError);
+          }
+        }
+        throw error;
+      }
     } else {
       const githubTree = await this.githubAPI.buildFileTree();
       // Convert GitHub tree format to our format
@@ -189,7 +214,25 @@ export class DocsProvider {
 
   async fetchFileContent(filePath: string): Promise<string> {
     if (this.config.source === 'local') {
-      return await this.localAPI.fetchFileContent(filePath);
+      try {
+        return await this.localAPI.fetchFileContent(filePath);
+      } catch (error: any) {
+        // If ENOENT error occurs, try to fallback to GitHub
+        if (error.code === 'ENOENT' && this.githubAPI) {
+          console.log('🔄 Local docs became unavailable, attempting GitHub fallback...');
+          try {
+            const githubValidation = await this.githubAPI.validateRepository();
+            if (githubValidation.valid) {
+              console.log('✅ Successfully switched to GitHub source.');
+              this.config = { source: 'github' };
+              return await this.githubAPI.fetchFileContent(filePath);
+            }
+          } catch (githubError) {
+            console.error('❌ GitHub fallback failed:', githubError);
+          }
+        }
+        throw error;
+      }
     } else {
       return await this.githubAPI.fetchFileContent(filePath);
     }
