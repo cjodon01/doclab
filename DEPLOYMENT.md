@@ -1,14 +1,24 @@
 # DocsDeploy Deployment Guide
 
-This guide covers deploying DocsDeploy to various platforms with step-by-step instructions and configuration details.
+Complete deployment guide for DocsDeploy - a static React documentation site that can be deployed to any modern hosting platform.
+
+## 🏗️ Project Overview
+
+**Architecture**: Static React SPA built with Vite  
+**Build Output**: `dist/` folder containing optimized static files  
+**Build Command**: `npm run build`  
+**Node Version**: 18+ required  
+**Deploy Target**: Any static hosting service  
 
 ## 🚀 One-Click Deployments
 
-### Netlify
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/docsdeploy)
+Deploy instantly to popular platforms:
 
-### Vercel  
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/docsdeploy)
+| Platform | Deploy Button | Best For |
+|----------|---------------|----------|
+| **Netlify** | [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/docsdeploy) | Ease of use, generous free tier |
+| **Vercel** | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/docsdeploy) | Performance, global CDN |
+| **Azure** | [Deploy to Azure](https://portal.azure.com/) | Enterprise, Microsoft ecosystem |
 
 ## 📋 Platform-Specific Setup
 

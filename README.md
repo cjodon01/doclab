@@ -1,12 +1,28 @@
 # DocsDeploy
 
-A plug-and-play documentation deployment solution that transforms your markdown files into beautiful, navigable documentation websites.
+A modern, plug-and-play documentation deployment solution that transforms your markdown files into beautiful, navigable documentation websites. Built with React, Vite, and Tailwind CSS.
+
+![DocsDeploy](https://img.shields.io/badge/React-18.3.1-blue)
+![DocsDeploy](https://img.shields.io/badge/Vite-5.x-purple)
+![DocsDeploy](https://img.shields.io/badge/Tailwind-3.x-teal)
+![DocsDeploy](https://img.shields.io/badge/License-MIT-green)
+
+## ✨ Features
+
+- 📁 **Hybrid Documentation Sources**: Local files + GitHub integration
+- 🎨 **Beautiful UI**: Modern design with dark/light mode support
+- 📱 **Fully Responsive**: Mobile-first design approach
+- ⚡ **Lightning Fast**: Built with Vite for optimal performance
+- 🔍 **Auto Navigation**: Automatically generates navigation from folder structure
+- 🌐 **Multiple Deployment Options**: Deploy to Netlify, Vercel, Azure, or GitHub Pages
+- 🔒 **Private Repo Support**: Works with private GitHub repositories
+- 🚀 **Zero Configuration**: Works out of the box
 
 ## 🚀 Quick Start
 
 1. **Fork or clone this repository**
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/yourusername/docsdeploy.git
    cd docsdeploy
    ```
 
@@ -31,63 +47,90 @@ A plug-and-play documentation deployment solution that transforms your markdown 
 
 ```
 docsdeploy/
-├── docs/                     # Your documentation files go here
-│   ├── getting-started.md
-│   ├── deployment.md
-│   └── README.md
+├── docs/                          # Your documentation files go here
+│   ├── README.md                  # Main documentation landing page
+│   ├── getting-started.md         # Quick start guide
+│   ├── deployment.md              # Deployment instructions
+│   └── deployment/                # Platform-specific guides
+│       ├── netlify.md
+│       ├── vercel.md
+│       ├── azure-static-web-apps.md
+│       └── azure-app-service.md
 ├── src/
 │   ├── components/
-│   │   ├── DocsNavigation.tsx
-│   │   ├── MarkdownRenderer.tsx
-│   │   └── RefreshButton.tsx
+│   │   ├── DocsNavigation.tsx     # Sidebar navigation
+│   │   ├── MarkdownRenderer.tsx   # Content rendering with syntax highlighting
+│   │   └── RefreshButton.tsx      # Refresh functionality
 │   ├── hooks/
-│   │   └── useMarkdownFiles.ts
+│   │   └── useMarkdownFiles.ts    # Custom hook for loading docs
+│   ├── lib/
+│   │   ├── githubClient.ts        # GitHub API integration
+│   │   └── utils.ts               # Utility functions
 │   ├── pages/
-│   │   └── Index.tsx
-│   └── lib/
-├── deployment/               # Deployment configurations
-│   ├── netlify.toml
-│   ├── vercel.json
-│   └── azure-static-web-apps.yml
+│   │   ├── Index.tsx              # Main documentation page
+│   │   └── NotFound.tsx           # 404 page
+│   └── index.css                  # Global styles and design tokens
 ├── .github/
 │   └── workflows/
-│       ├── deploy-gh-pages.yml
-│       └── deploy-azure.yml
+│       ├── deploy-gh-pages.yml    # GitHub Pages deployment
+│       └── deploy-azure.yml       # Azure deployment
+├── netlify.toml                   # Netlify configuration
+├── vercel.json                    # Vercel configuration
+├── staticwebapp.config.json       # Azure Static Web Apps configuration
 └── package.json
 ```
 
 ## 🌐 Deployment Options
 
-### Netlify
-- **One-click deploy**: [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/docsdeploy)
-- **Manual**: Push to GitHub and connect in Netlify dashboard
-- **Config**: Uses `deployment/netlify.toml`
+DocsDeploy is a **static React application** that can be deployed to any static hosting platform. All builds output to the `dist/` folder using Vite.
 
-### Vercel
-- **One-click deploy**: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/docsdeploy)
-- **Manual**: Import project from GitHub
-- **Config**: Uses `vercel.json`
+### 🚀 One-Click Deployments
 
-### Azure Static Web Apps
-- **Manual**: Create Static Web App in Azure Portal
-- **Config**: Uses `deployment/azure-static-web-apps.yml`
+| Platform | Deploy Button | Best For |
+|----------|---------------|----------|
+| **Netlify** | [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/docsdeploy) | Ease of use, great free tier |
+| **Vercel** | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/docsdeploy) | Performance, DX, global CDN |
+| **Azure** | [Deploy to Azure](https://portal.azure.com/) | Enterprise, Microsoft ecosystem |
 
-### GitHub Pages
-- **Automatic**: Enable GitHub Actions in `.github/workflows/deploy-gh-pages.yml`
-- **Manual**: Enable Pages in repository settings
+### 📋 Build Configuration
+
+All platforms use these standard settings:
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Node Version**: 18+
+- **Framework**: Vite (React)
+
+### 📖 Detailed Guides
+
+For platform-specific instructions, see our detailed deployment guides:
+- [Netlify Deployment](docs/deployment/netlify.md)
+- [Vercel Deployment](docs/deployment/vercel.md) 
+- [Azure Static Web Apps](docs/deployment/azure-static-web-apps.md)
+- [GitHub Pages](docs/deployment.md#github-pages)
 
 ## ⚙️ Configuration
 
+### Hybrid Documentation System
+
+DocsDeploy supports multiple documentation sources:
+
+- **🏠 Local First**: Reads from `docs/` folder (fastest, works offline)
+- **🌐 GitHub Fallback**: Fetches from GitHub repository when local unavailable
+- **🔄 Automatic Switching**: Seamlessly switches between sources as needed
+
 ### Environment Variables (Optional)
 
-For GitHub integration fallback when local docs aren't available:
+For GitHub integration, add these environment variables to your hosting platform:
 
 ```bash
-VITE_GITHUB_OWNER=yourusername      # GitHub username/organization
+VITE_GITHUB_OWNER=yourusername      # GitHub username/organization  
 VITE_GITHUB_REPO=your-docs-repo     # Repository name
-VITE_GITHUB_BRANCH=main             # Branch to read from
-VITE_DOCS_PATH=docs                 # Path to docs folder
+VITE_GITHUB_BRANCH=main             # Branch to read from (default: main)
+VITE_GITHUB_DOCS_PATH=docs          # Path to docs folder (default: docs)
+VITE_GITHUB_TOKEN=your-token        # Only required for private repositories
 ```
+
+> **Note**: All environment variables must be prefixed with `VITE_` for client-side access.
 
 ### Local Development
 
@@ -147,40 +190,75 @@ docs/
 
 ## 🔧 Advanced Features
 
-### GitHub Integration
-- Automatic fallback to GitHub when local files unavailable
-- Supports private repositories with authentication
-- Configurable branch and folder paths
+### 🔀 Hybrid Documentation System
+- **Primary Source**: Local `docs/` folder for fastest access
+- **Automatic Fallback**: GitHub repository when local unavailable  
+- **Private Repository Support**: Works with private repos using GitHub tokens
+- **Configurable Paths**: Custom branch and folder configurations
 
-### Navigation
-- Auto-generated from folder structure
-- Expandable/collapsible sections
-- Active page highlighting
-- Mobile-responsive sidebar
+### 🧭 Smart Navigation
+- **Auto-Generated**: Navigation tree from folder structure
+- **Expandable Sections**: Collapsible folders and subfolders
+- **Active Highlighting**: Current page and section indicators
+- **Mobile Responsive**: Touch-friendly sidebar with smooth animations
+- **Search Ready**: Prepared for future search functionality
 
-### Performance
-- Built with Vite for fast development and builds
-- Lazy loading for large documentation sets
-- Optimized markdown parsing and rendering
+### ⚡ Performance Optimized
+- **Vite Build System**: Lightning-fast development and production builds
+- **Code Splitting**: Automatic chunking for optimal loading
+- **Markdown Caching**: Intelligent caching of parsed content
+- **Lazy Loading**: Content loaded on-demand for large documentation sets
+- **CDN Ready**: Optimized for global content delivery networks
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+We welcome contributions! Here's how to get started:
+
+1. **Fork the repository** and clone it locally
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and test thoroughly
+4. **Follow the coding standards**: Use TypeScript, format with Prettier
+5. **Update documentation** if needed
+6. **Submit a pull request** with a clear description
+
+### Development Setup
+
+```bash
+# Clone your fork
+git clone https://github.com/yourusername/docsdeploy.git
+cd docsdeploy
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Run linting
+npm run lint
+
+# Build for production
+npm run build
+```
 
 ## 📄 License
 
-MIT License - feel free to use for personal or commercial projects.
+MIT License - feel free to use for personal or commercial projects. See [LICENSE](LICENSE) for details.
 
-## 🆘 Support
+## 🆘 Support & Community
 
-- Check the [deployment guide](docs/deployment.md)
-- Open an issue for bugs or feature requests
-- Join our community discussions
+- 📖 **Documentation**: Check our [comprehensive guides](docs/)
+- 🐛 **Bug Reports**: [Open an issue](https://github.com/yourusername/docsdeploy/issues)
+- 💡 **Feature Requests**: [Request a feature](https://github.com/yourusername/docsdeploy/issues)
+- 💬 **Discussions**: [Join the conversation](https://github.com/yourusername/docsdeploy/discussions)
+
+## 🚀 Related Projects
+
+- [Vite](https://vitejs.dev/) - Next generation frontend tooling
+- [React](https://reactjs.org/) - The library for web and native user interfaces
+- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- [Marked](https://marked.js.org/) - Markdown parser and compiler
 
 ---
 
-**Ready to deploy your documentation?** Choose your preferred platform above and get started in minutes!
+**Ready to deploy your documentation?** Choose your preferred platform above and get started in minutes! 🎉
