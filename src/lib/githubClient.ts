@@ -28,8 +28,7 @@ export class GitHubAPI {
       'User-Agent': 'DocsDeploy/1.0',
     };
 
-    // Only add authorization if token exists and is valid format
-    if (this.config.token && this.config.token.trim() && this.config.token !== 'your_token_here') {
+    if (this.config.token) {
       headers['Authorization'] = `token ${this.config.token}`;
     }
 
@@ -45,21 +44,29 @@ export class GitHubAPI {
 
     if (!response.ok) {
       let errorMessage = '';
+      const responseText = await response.text();
+      console.error('GitHub API Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        url,
+        responseBody: responseText
+      });
       
       if (response.status === 404) {
-        errorMessage = `Repository '${this.config.owner}/${this.config.repo}' or documentation folder '${this.config.docsPath}' not found. Please verify your GitHub repository settings.`;
+        errorMessage = `Repository '${this.config.owner}/${this.config.repo}' or path not found. Please verify: 1) Repository exists and is accessible 2) Path '${this.config.docsPath}' exists in the repository 3) Branch '${this.config.branch}' exists`;
       } else if (response.status === 403) {
-        errorMessage = `Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token.`;
+        errorMessage = `Access denied to repository '${this.config.owner}/${this.config.repo}'. If this is a private repository, please ensure you have set a valid GitHub token with proper permissions.`;
       } else if (response.status === 401) {
         errorMessage = `Authentication failed. Please check your GitHub token if accessing a private repository.`;
       } else {
-        errorMessage = `GitHub API error: ${response.status} ${response.statusText}. Please check your repository configuration.`;
+        errorMessage = `GitHub API error: ${response.status} ${response.statusText}. Response: ${responseText}`;
       }
       
       throw new Error(errorMessage);
     }
 
-    return response.json();
+    const responseText = await response.text();
+    return JSON.parse(responseText);
   }
 
   async fetchContents(path: string = ''): Promise<GitHubFileItem[]> {
