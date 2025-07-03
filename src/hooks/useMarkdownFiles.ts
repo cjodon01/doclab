@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createGitHubClient } from '@/lib/githubClient';
 
 export interface MarkdownFile {
   name: string;
@@ -8,66 +9,27 @@ export interface MarkdownFile {
   children?: MarkdownFile[];
 }
 
-interface GitHubConfig {
-  owner: string;
-  repo: string;
-  branch: string;
-  docsPath: string;
-}
-
 export const useMarkdownFiles = () => {
   const [files, setFiles] = useState<MarkdownFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<'local' | 'github'>('local');
 
-  const githubConfig: GitHubConfig = {
-    owner: import.meta.env.VITE_GITHUB_OWNER || '',
-    repo: import.meta.env.VITE_GITHUB_REPO || '',
-    branch: import.meta.env.VITE_GITHUB_BRANCH || 'main',
-    docsPath: import.meta.env.VITE_DOCS_PATH || 'docs'
-  };
-
   const fetchFromGitHub = async (): Promise<MarkdownFile[]> => {
-    if (!githubConfig.owner || !githubConfig.repo) {
+    const githubClient = createGitHubClient();
+    
+    if (!githubClient) {
       throw new Error('GitHub configuration missing. Set VITE_GITHUB_OWNER and VITE_GITHUB_REPO environment variables.');
     }
 
-    const response = await fetch(
-      `https://api.github.com/repos/${githubConfig.owner}/${githubConfig.repo}/contents/${githubConfig.docsPath}?ref=${githubConfig.branch}`
-    );
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch from GitHub: ${response.statusText}`);
+    // Validate repository access first
+    const validation = await githubClient.validateRepository();
+    if (!validation.valid) {
+      throw new Error(validation.error || 'Repository validation failed');
     }
 
-    const contents = await response.json();
-    const processedFiles: MarkdownFile[] = [];
-
-    for (const item of contents) {
-      if (item.type === 'file' && item.name.endsWith('.md')) {
-        const fileResponse = await fetch(item.download_url);
-        const content = await fileResponse.text();
-        
-        processedFiles.push({
-          name: item.name.replace('.md', ''),
-          path: item.path,
-          content,
-          isDirectory: false
-        });
-      } else if (item.type === 'dir') {
-        // For now, we'll just mark directories - could be expanded later
-        processedFiles.push({
-          name: item.name,
-          path: item.path,
-          content: '',
-          isDirectory: true,
-          children: []
-        });
-      }
-    }
-
-    return processedFiles;
+    // Build the file tree with proper nested directory support
+    return await githubClient.buildFileTree();
   };
 
   const loadLocalFiles = async (): Promise<MarkdownFile[]> => {
@@ -133,19 +95,24 @@ export const useMarkdownFiles = () => {
         setError(null);
 
         // Try GitHub first if config is available, then fall back to local
-        if (githubConfig.owner && githubConfig.repo) {
+        const githubClient = createGitHubClient();
+        if (githubClient) {
           try {
+            console.log('Attempting to fetch from GitHub...');
             const githubFiles = await fetchFromGitHub();
             setFiles(githubFiles);
             setSource('github');
+            console.log('Successfully loaded from GitHub:', githubFiles.length, 'items');
           } catch (githubError) {
-            console.log('GitHub fetch failed, trying local files...');
+            console.log('GitHub fetch failed:', githubError);
+            console.log('Falling back to local files...');
             const localFiles = await loadLocalFiles();
             setFiles(localFiles);
             setSource('local');
           }
         } else {
           // No GitHub config, use local files
+          console.log('No GitHub config found, using local files...');
           const localFiles = await loadLocalFiles();
           setFiles(localFiles);
           setSource('local');
