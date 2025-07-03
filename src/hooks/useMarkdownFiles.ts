@@ -95,27 +95,30 @@ export const useMarkdownFiles = () => {
         setError(null);
 
         // Try GitHub first if config is available, then fall back to local
+        console.log('🔍 Starting documentation load process...');
         const githubClient = createGitHubClient();
         if (githubClient) {
           try {
-            console.log('Attempting to fetch from GitHub...');
+            console.log('📡 Attempting to fetch from GitHub...');
             const githubFiles = await fetchFromGitHub();
             setFiles(githubFiles);
             setSource('github');
-            console.log('Successfully loaded from GitHub:', githubFiles.length, 'items');
+            console.log('✅ Successfully loaded from GitHub:', githubFiles.length, 'items');
           } catch (githubError) {
-            console.log('GitHub fetch failed:', githubError);
-            console.log('Falling back to local files...');
+            console.error('❌ GitHub fetch failed:', githubError);
+            console.log('🔄 Falling back to local files...');
             const localFiles = await loadLocalFiles();
             setFiles(localFiles);
             setSource('local');
+            console.log('📁 Using local files:', localFiles.length, 'items');
           }
         } else {
           // No GitHub config, use local files
-          console.log('No GitHub config found, using local files...');
+          console.log('📁 No GitHub config found, using local files...');
           const localFiles = await loadLocalFiles();
           setFiles(localFiles);
           setSource('local');
+          console.log('📁 Loaded local files:', localFiles.length, 'items');
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load documentation');

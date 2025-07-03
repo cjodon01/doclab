@@ -178,25 +178,46 @@ function validateGitHubConfig(owner: string, repo: string, branch: string, docsP
 }
 
 export function createGitHubClient(): GitHubAPI | null {
+  // Debug logging for Azure environment variables
+  console.log('=== ENVIRONMENT VARIABLES DEBUG ===');
+  console.log('All import.meta.env:', import.meta.env);
+  console.log('Node ENV:', import.meta.env.NODE_ENV);
+  console.log('Mode:', import.meta.env.MODE);
+  console.log('Available keys:', Object.keys(import.meta.env));
+  
   const owner = import.meta.env.VITE_GITHUB_OWNER;
   const repo = import.meta.env.VITE_GITHUB_REPO;
   const branch = import.meta.env.VITE_GITHUB_BRANCH || 'main';
   const docsPath = import.meta.env.VITE_GITHUB_DOCS_PATH || 'docs';
   const token = import.meta.env.VITE_GITHUB_TOKEN;
 
+  console.log('Raw GitHub Config Values:', {
+    owner: owner || 'MISSING',
+    repo: repo || 'MISSING', 
+    branch: branch || 'DEFAULT_main',
+    docsPath: docsPath || 'DEFAULT_docs',
+    token: token ? 'PRESENT' : 'MISSING'
+  });
+
   if (!owner || !repo) {
+    console.error('❌ GitHub configuration missing:', {
+      owner: !!owner,
+      repo: !!repo,
+      availableEnvKeys: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_'))
+    });
     console.log('GitHub configuration missing. Set VITE_GITHUB_OWNER and VITE_GITHUB_REPO environment variables.');
     return null;
   }
 
   try {
     validateGitHubConfig(owner, repo, branch, docsPath);
+    console.log('✅ GitHub config validation passed');
   } catch (error) {
-    console.error('Invalid GitHub configuration:', error);
+    console.error('❌ Invalid GitHub configuration:', error);
     return null;
   }
 
-  console.log('GitHub Config:', { owner, repo, branch, docsPath, token: token ? '***' : 'none' });
+  console.log('✅ GitHub Config Created:', { owner, repo, branch, docsPath, token: token ? '***' : 'none' });
 
   return new GitHubAPI({ owner, repo, branch, docsPath, token });
 }
