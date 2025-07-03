@@ -54,11 +54,11 @@ When both local docs and GitHub are configured:
 
 ## Deployment
 
-DocsDeploy works great on:
-- **Netlify** (with serverless functions)
-- **Vercel** (with API routes)
-- **Azure** (App Service or Static Web Apps)
-- **Any static host** (with local docs only)
+DocsDeploy is a static React application that works great on:
+- **Netlify** (recommended for ease of use)
+- **Vercel** (excellent performance and DX)
+- **Azure Static Web Apps** (enterprise-friendly)
+- **Any static hosting service** (GitHub Pages, AWS S3, etc.)
 
 ## Next Steps
 

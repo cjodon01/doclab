@@ -1,6 +1,12 @@
 # Deployment
 
-DocsDeploy can be deployed to any static hosting service. Here are step-by-step guides for popular platforms.
+DocsDeploy is a static React application that can be deployed to any static hosting service. Here are step-by-step guides for popular platforms.
+
+## Quick Deploy
+
+### One-Click Deployments
+- **Netlify**: [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/docsdeploy)
+- **Vercel**: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/docsdeploy)
 
 ## Netlify Deployment
 
@@ -12,10 +18,16 @@ DocsDeploy can be deployed to any static hosting service. Here are step-by-step 
 2. **Configure build settings**
    - Build command: `npm run build`
    - Publish directory: `dist`
+   - Node version: 18
 
-3. **Set environment variables** (optional)
-   - Go to Site settings → Environment variables
-   - Add your GitHub configuration variables
+3. **Set environment variables** (optional for GitHub integration)
+   ```
+   VITE_GITHUB_OWNER=your-username
+   VITE_GITHUB_REPO=your-repo-name
+   VITE_GITHUB_BRANCH=main
+   VITE_GITHUB_DOCS_PATH=docs
+   VITE_GITHUB_TOKEN=your-token (only for private repos)
+   ```
 
 4. **Deploy**
    - Click "Deploy site"
@@ -32,32 +44,31 @@ DocsDeploy can be deployed to any static hosting service. Here are step-by-step 
    - Framework Preset: Vite
    - Build Command: `npm run build`
    - Output Directory: `dist`
+   - Install Command: `npm install`
 
-3. **Environment variables**
+3. **Environment variables** (optional for GitHub integration)
    - Add your GitHub configuration in the Environment Variables section
+   - Use the same variables as listed above for Netlify
 
 4. **Deploy**
    - Click "Deploy"
    - Access your site via the provided Vercel URL
 
-## Azure App Service
+## Azure Static Web Apps
 
-1. **Create App Service**
+1. **Create Static Web App**
    - Go to Azure Portal
-   - Create a new App Service
-   - Choose "Static Web App" or regular "App Service"
+   - Create a new "Static Web App" resource
+   - Connect to your GitHub repository
 
 2. **Configure deployment**
-   - Connect to your GitHub repository
-   - Set build configuration:
-     ```yaml
-     app_location: "/"
-     api_location: ""
-     output_location: "dist"
-     ```
+   - App location: `/`
+   - Build location: `dist`
+   - Build command: `npm run build`
 
-3. **Set environment variables**
-   - In App Service settings, add your GitHub configuration
+3. **Set environment variables** (optional for GitHub integration)
+   - In Static Web App settings → Configuration
+   - Add the same GitHub variables as above
 
 4. **Deploy**
    - Azure will automatically build and deploy from your repository

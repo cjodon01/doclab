@@ -1,22 +1,18 @@
-version: 2
-routes:
-  - build_command: npm run build
-    publish_directory: dist
-    environment:
-      NODE_VERSION: 18
-    environmentVariables:
-      - key: VITE_GITHUB_OWNER
-        value: ""  # Set in Azure portal
-      - key: VITE_GITHUB_REPO  
-        value: ""  # Set in Azure portal
-      - key: VITE_GITHUB_BRANCH
-        value: "main"
-      - key: VITE_DOCS_PATH
-        value: "docs"
-navigationFallback:
-  rewrite: /index.html
-  exclude: [/images/*.{png,jpg,gif}, /css/*]
-responseOverrides:
-  404:
-    rewrite: /index.html
-    statusCode: 200
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*"]
+  },
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
+  },
+  "routes": [
+    {
+      "route": "/*",
+      "allowedRoles": ["anonymous"]
+    }
+  ]
+}
