@@ -1,103 +1,102 @@
-# DocsDeploy
+# DocsDeploy Documentation
 
-A plug-and-play documentation deployment solution that transforms your markdown files into a beautiful, navigable documentation website.
+Welcome to DocsDeploy! This documentation demonstrates the hybrid approach - these files exist locally in the `docs` folder, with GitHub as a fallback option.
 
-## Overview
+## Hybrid Documentation System
 
-DocsDeploy automatically reads markdown files from your `docs` folder and generates a professional documentation site with:
+DocsDeploy supports multiple documentation sources:
 
-- **Automatic navigation** based on your folder structure
-- **Beautiful markdown rendering** with syntax highlighting
-- **GitHub integration** as a fallback source
-- **Responsive design** that works on all devices
-- **Easy deployment** to any static hosting platform
+### 🏠 Local Documentation
+- Files stored in the `docs` folder
+- Fastest access and loading
+- Works offline during development
+- Primary source when available
 
-## Key Features
+### 🌐 GitHub Integration  
+- Fetches from your GitHub repository
+- Automatic updates when you push changes
+- Works with private repositories
+- Fallback when local docs unavailable
 
-### 🗂️ Automatic File Discovery
-- Scans your `docs` folder for markdown files
-- Generates navigation tree based on folder structure
-- Supports nested directories and organization
+### 🔄 Hybrid Mode
+- **Best of both worlds**
+- Local docs as primary source
+- GitHub as automatic fallback
+- Seamless switching between sources
 
-### 📝 Rich Markdown Support
-- Full GitHub Flavored Markdown support
-- Syntax highlighting for code blocks
-- Tables, lists, links, and images
-- Clean, readable typography
+## Current Configuration
 
-### 🔄 GitHub Integration
-- Fallback to GitHub repository when local files aren't available
-- Configurable via environment variables
-- Supports private repositories with proper authentication
+This instance is running in **hybrid mode**, which means:
 
-### 🎨 Professional Design
-- Clean, modern interface inspired by popular documentation sites
-- Syntax-highlighted code blocks
-- Responsive layout for mobile and desktop
-- Intuitive navigation with expandable sections
-
-### 🚀 Deploy Anywhere
-- Works with any static hosting service
-- No server-side requirements
-- Built with Vite for fast, optimized builds
-
-## Quick Start
-
-1. **Fork this repository**
-2. **Add your markdown files** to the `docs` folder
-3. **Deploy** to your preferred platform (Netlify, Vercel, Azure, etc.)
-4. **Configure** GitHub integration if needed
-
-## Use Cases
-
-- **API Documentation**: Document your REST APIs, GraphQL schemas, or SDKs
-- **Project Documentation**: User guides, developer docs, and tutorials
-- **Knowledge Bases**: Internal documentation and wikis
-- **Product Documentation**: Feature guides and help documentation
-- **Open Source Projects**: README extensions and contributor guides
-
-## Technical Details
-
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite for fast development and optimized builds
-- **Styling**: Tailwind CSS with custom documentation theme
-- **Markdown**: Marked.js for reliable markdown parsing
-- **Routing**: React Router for SPA navigation
-
-## Environment Configuration
-
-```bash
-# GitHub Integration (optional)
-VITE_GITHUB_OWNER=your-username
-VITE_GITHUB_REPO=your-repository
-VITE_GITHUB_BRANCH=main
-VITE_DOCS_PATH=docs
-```
+1. **Primary**: Reading from local `docs` folder
+2. **Fallback**: GitHub repository (if configured)
+3. **Automatic**: Switches sources as needed
 
 ## File Structure
 
 ```
-your-project/
-├── docs/                 # Your documentation files
-│   ├── getting-started.md
-│   ├── api/
-│   │   └── reference.md
-│   └── guides/
-│       └── tutorial.md
-├── src/                  # DocsDeploy source code
-├── public/               # Static assets
-└── package.json
+docs/
+├── README.md              # This file
+├── getting-started.md     # Quick start guide
+└── deployment/           # Deployment guides
+    ├── netlify.md
+    ├── vercel.md
+    ├── azure-storage.md
+    └── azure-app-service.md
 ```
 
-## Contributing
+## Benefits of Hybrid Approach
 
-DocsDeploy is open source and welcomes contributions. Feel free to:
+### For Development
+- ✅ Fast local access
+- ✅ Offline capability
+- ✅ Immediate updates
+- ✅ No API rate limits
 
-- Report bugs and request features
-- Improve documentation
-- Submit pull requests
-- Share your deployed documentation sites
+### For Production
+- ✅ Reliable fallback
+- ✅ Remote updates possible
+- ✅ Team collaboration
+- ✅ Version control integration
 
-## License
+### For Deployment
+- ✅ Works on any platform
+- ✅ Reduced external dependencies
+- ✅ Better performance
+- ✅ Increased reliability
 
-MIT License - feel free to use this for personal or commercial projects.
+## Getting Started
+
+1. **Add local docs**: Create markdown files in the `docs` folder
+2. **Configure GitHub** (optional): Set environment variables for remote access
+3. **Deploy**: Choose your preferred hosting platform
+4. **Enjoy**: Your documentation is live with automatic fallback!
+
+## Environment Variables
+
+For GitHub integration, configure these variables:
+
+```bash
+# Required for GitHub integration
+GITHUB_REPO_OWNER=your-username
+GITHUB_REPO_NAME=your-repository
+GITHUB_DOCS_PATH=docs
+
+# Optional for private repositories
+GITHUB_TOKEN=your-personal-access-token
+```
+
+## Deployment Platforms
+
+Choose from our detailed deployment guides:
+
+- **[Netlify](deployment/netlify.md)** - Serverless functions with automatic deployments
+- **[Vercel](deployment/vercel.md)** - Optimized for performance and developer experience  
+- **[Azure Storage](deployment/azure-storage.md)** - Cost-effective static hosting
+- **[Azure App Service](deployment/azure-app-service.md)** - Full-featured web application hosting
+
+Each platform guide includes specific instructions for both local and GitHub-based documentation.
+
+---
+
+**Ready to get started?** Check out the [Getting Started](getting-started.md) guide!

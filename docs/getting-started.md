@@ -1,69 +1,70 @@
-# Getting Started
+# Getting Started with DocsDeploy
 
-Welcome to DocsDeploy! This is a simple documentation deployment tool that automatically reads markdown files and creates a beautiful documentation site.
+Welcome to DocsDeploy! This guide will help you get your documentation site up and running quickly.
+
+## What is DocsDeploy?
+
+DocsDeploy is a flexible documentation platform that can read from:
+- **Local docs folder** (primary source when available)
+- **GitHub repository** (fallback or standalone source)
+- **Hybrid mode** (local with GitHub fallback)
 
 ## Quick Setup
 
-1. **Fork or clone this repository**
-   ```bash
-   git clone <your-repo-url>
-   cd docsdeploy
-   ```
+### 1. Local Documentation (Recommended)
 
-2. **Add your markdown files to the `docs` folder**
-   - Create `.md` files in the `docs` directory
-   - Organize them in subdirectories as needed
-   - The navigation will automatically reflect your folder structure
+Create a `docs` folder in your project with markdown files:
 
-3. **Deploy to your preferred platform**
-   - **Netlify**: Connect your GitHub repo and deploy
-   - **Vercel**: Import your project and deploy
-   - **Azure App Service**: Use GitHub Actions or manual deployment
-   - **GitHub Pages**: Enable GitHub Pages in your repo settings
-
-## Configuration
-
-### Environment Variables
-
-For GitHub integration fallback, set these environment variables:
-
-- `VITE_GITHUB_OWNER`: Your GitHub username/organization
-- `VITE_GITHUB_REPO`: Repository name  
-- `VITE_GITHUB_BRANCH`: Branch to read from (default: main)
-- `VITE_DOCS_PATH`: Path to docs folder (default: docs)
-
-### Example `.env` file
 ```
-VITE_GITHUB_OWNER=yourusername
-VITE_GITHUB_REPO=your-docs-repo
-VITE_GITHUB_BRANCH=main
-VITE_DOCS_PATH=docs
+docs/
+├── README.md
+├── getting-started.md
+├── api/
+│   └── endpoints.md
+└── guides/
+    └── deployment.md
 ```
+
+### 2. GitHub Integration (Optional)
+
+For GitHub integration, set these environment variables:
+
+```bash
+GITHUB_REPO_OWNER=your-username
+GITHUB_REPO_NAME=your-repo
+GITHUB_DOCS_PATH=docs
+GITHUB_TOKEN=your-token  # Only for private repos
+```
+
+### 3. Hybrid Mode (Best of Both)
+
+When both local docs and GitHub are configured:
+- **Primary**: Local docs folder
+- **Fallback**: GitHub repository
+- **Automatic switching** if local becomes unavailable
 
 ## Features
 
-- 📁 **Automatic navigation generation** from folder structure
-- 📝 **Markdown rendering** with syntax highlighting
-- 🔄 **GitHub integration fallback** when local files aren't available
-- 📱 **Mobile responsive** design
-- 🚀 **Easy deployment** to any static hosting service
-- 🎨 **Clean, professional** documentation theme
+- 📁 **Flexible Sources**: Local, GitHub, or hybrid
+- 🎨 **Beautiful Design**: Clean, professional interface
+- 📱 **Responsive**: Works on all devices
+- ⚡ **Fast Loading**: Optimized performance
+- 🔒 **Secure**: Support for private repositories
+- 🚀 **Easy Deploy**: Multiple deployment options
 
-## File Structure
+## Deployment
 
-```
-your-repo/
-├── docs/
-│   ├── getting-started.md
-│   ├── api/
-│   │   ├── authentication.md
-│   │   └── endpoints.md
-│   └── guides/
-│       ├── installation.md
-│       └── configuration.md
-├── src/
-│   └── ... (DocsDeploy source code)
-└── package.json
-```
+DocsDeploy works great on:
+- **Netlify** (with serverless functions)
+- **Vercel** (with API routes)
+- **Azure** (App Service or Static Web Apps)
+- **Any static host** (with local docs only)
 
-The navigation tree will automatically follow your `docs` folder structure.
+## Next Steps
+
+1. Add your markdown files to the `docs` folder
+2. Configure GitHub integration (optional)
+3. Deploy to your preferred platform
+4. Enjoy your beautiful documentation site!
+
+For detailed deployment guides, see the deployment section in the sidebar.
