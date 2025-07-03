@@ -44,7 +44,7 @@ export const MarkdownRenderer = ({ content, title }: MarkdownRendererProps) => {
             prose-p:text-foreground
             prose-strong:text-foreground
             prose-code:bg-muted prose-code:text-foreground prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
-            prose-pre:bg-docs-code-bg prose-pre:text-gray-100 prose-pre:border prose-pre:border-border prose-pre:rounded-lg prose-pre:p-4 prose-pre:overflow-x-auto prose-pre:shadow-sm
+            prose-pre:bg-gray-900 prose-pre:text-gray-100 prose-pre:border prose-pre:border-gray-700 prose-pre:rounded-lg prose-pre:p-6 prose-pre:overflow-x-auto prose-pre:shadow-lg prose-pre:font-mono prose-pre:text-sm prose-pre:leading-relaxed
             prose-blockquote:border-l-primary
             prose-a:text-primary hover:prose-a:text-primary/80
             prose-ul:text-foreground
