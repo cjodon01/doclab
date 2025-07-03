@@ -71,68 +71,23 @@ export const useMarkdownFiles = () => {
   };
 
   const loadLocalFiles = async (): Promise<MarkdownFile[]> => {
-    // This would typically require a build-time process to gather local files
-    // For now, we'll return some default structure
-    const defaultFiles = [
-      {
-        name: 'Getting Started',
-        path: 'getting-started.md',
-        content: `# Getting Started
-
-Welcome to DocsDeploy! This is a simple documentation deployment tool.
-
-## Quick Setup
-
-1. Fork or clone this repository
-2. Add your markdown files to the \`docs\` folder
-3. Deploy to your preferred platform (Netlify, Vercel, Azure, etc.)
-
-## Configuration
-
-Set these environment variables for GitHub integration:
-
-- \`VITE_GITHUB_OWNER\`: Your GitHub username/organization
-- \`VITE_GITHUB_REPO\`: Repository name
-- \`VITE_GITHUB_BRANCH\`: Branch to read from (default: main)
-- \`VITE_DOCS_PATH\`: Path to docs folder (default: docs)
-
-## Features
-
-- Automatic navigation generation
-- Markdown rendering
-- GitHub integration fallback
-- Mobile responsive
-- Easy deployment`,
+    // Import all markdown files from the docs directory
+    const modules = import.meta.glob('/docs/**/*.md', { as: 'raw', eager: true });
+    const files: MarkdownFile[] = [];
+    
+    Object.entries(modules).forEach(([path, content]) => {
+      const fileName = path.split('/').pop()?.replace('.md', '') || '';
+      const filePath = path.replace('/docs/', '');
+      
+      files.push({
+        name: fileName,
+        path: filePath,
+        content: content as string,
         isDirectory: false
-      },
-      {
-        name: 'README',
-        path: 'README.md',
-        content: `# DocsDeploy
-
-A plug-and-play documentation deployment solution.
-
-## Features
-
-- Read markdown files from local \`docs\` folder
-- Fallback to GitHub repository integration
-- Automatic navigation tree generation
-- Clean, responsive design
-- Easy deployment to any platform
-
-## Deployment
-
-This app can be deployed to:
-- Netlify
-- Vercel
-- Azure App Service
-- GitHub Pages
-- Any static hosting service`,
-        isDirectory: false
-      }
-    ];
-
-    return defaultFiles;
+      });
+    });
+    
+    return files.length > 0 ? files : [];
   };
 
   useEffect(() => {
