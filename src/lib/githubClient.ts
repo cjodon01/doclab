@@ -28,7 +28,8 @@ export class GitHubAPI {
       'User-Agent': 'DocsDeploy/1.0',
     };
 
-    if (this.config.token) {
+    // Only add authorization if token exists and is valid format
+    if (this.config.token && this.config.token.trim() && this.config.token !== 'your_token_here') {
       headers['Authorization'] = `token ${this.config.token}`;
     }
 
