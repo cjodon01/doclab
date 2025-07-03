@@ -73,21 +73,57 @@ export const useMarkdownFiles = () => {
   const loadLocalFiles = async (): Promise<MarkdownFile[]> => {
     // Import all markdown files from the docs directory
     const modules = import.meta.glob('/docs/**/*.md', { as: 'raw', eager: true });
-    const files: MarkdownFile[] = [];
     
+    // Build a tree structure from the file paths
+    const fileTree: { [key: string]: MarkdownFile } = {};
+    const rootFiles: MarkdownFile[] = [];
+    
+    // First, create all files and directories
     Object.entries(modules).forEach(([path, content]) => {
-      const fileName = path.split('/').pop()?.replace('.md', '') || '';
-      const filePath = path.replace('/docs/', '');
+      const relativePath = path.replace('/docs/', '').replace(/^\//, '');
+      const pathParts = relativePath.split('/');
+      const fileName = pathParts[pathParts.length - 1].replace('.md', '');
       
-      files.push({
+      // Create file entry
+      const file: MarkdownFile = {
         name: fileName,
-        path: filePath,
+        path: relativePath,
         content: content as string,
         isDirectory: false
-      });
+      };
+      
+      if (pathParts.length === 1) {
+        // Root level file
+        rootFiles.push(file);
+      } else {
+        // File in subdirectory - ensure all parent directories exist
+        let currentPath = '';
+        let currentLevel = rootFiles;
+        
+        for (let i = 0; i < pathParts.length - 1; i++) {
+          const dirName = pathParts[i];
+          currentPath = currentPath ? `${currentPath}/${dirName}` : dirName;
+          
+          let dir = currentLevel.find(item => item.name === dirName && item.isDirectory);
+          if (!dir) {
+            dir = {
+              name: dirName,
+              path: currentPath,
+              content: '',
+              isDirectory: true,
+              children: []
+            };
+            currentLevel.push(dir);
+          }
+          currentLevel = dir.children!;
+        }
+        
+        // Add the file to its parent directory
+        currentLevel.push(file);
+      }
     });
     
-    return files.length > 0 ? files : [];
+    return rootFiles.length > 0 ? rootFiles : [];
   };
 
   useEffect(() => {

@@ -13,7 +13,7 @@ interface DocsNavigationProps {
 interface NavItemProps {
   file: MarkdownFile;
   level: number;
-  isActive: boolean;
+  isActive: string | null;
   onSelect: (file: MarkdownFile) => void;
 }
 
@@ -35,7 +35,7 @@ const NavItem = ({ file, level, isActive, onSelect }: NavItemProps) => {
         className={cn(
           "flex items-center gap-2 px-3 py-2 text-sm cursor-pointer rounded-md transition-colors",
           "hover:bg-docs-nav-active",
-          isActive && "bg-docs-nav-active font-medium text-primary",
+          isActive === file.path && "bg-docs-nav-active font-medium text-primary",
           level > 0 && "ml-4"
         )}
         onClick={handleClick}
@@ -103,7 +103,7 @@ export const DocsNavigation = ({ files, activeFile, onFileSelect, source }: Docs
               key={index}
               file={file}
               level={0}
-              isActive={activeFile === file.path}
+              isActive={activeFile}
               onSelect={onFileSelect}
             />
           ))}
