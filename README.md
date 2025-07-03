@@ -1,73 +1,186 @@
-# Welcome to your Lovable project
+# DocsDeploy
 
-## Project info
+A plug-and-play documentation deployment solution that transforms your markdown files into beautiful, navigable documentation websites.
 
-**URL**: https://lovable.dev/projects/65677ddd-9a66-4388-a49b-c2d3a9e5874d
+## 🚀 Quick Start
 
-## How can I edit this code?
+1. **Fork or clone this repository**
+   ```bash
+   git clone <your-repo-url>
+   cd docsdeploy
+   ```
 
-There are several ways of editing your application.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Use Lovable**
+3. **Add your documentation**
+   - Create `.md` files in the `docs/` folder
+   - Organize in subdirectories as needed
+   - Navigation auto-generates from folder structure
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/65677ddd-9a66-4388-a49b-c2d3a9e5874d) and start prompting.
+4. **Run locally**
+   ```bash
+   npm run dev
+   ```
 
-Changes made via Lovable will be committed automatically to this repo.
+5. **Deploy** (see deployment options below)
 
-**Use your preferred IDE**
+## 📁 Project Structure
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+docsdeploy/
+├── docs/                     # Your documentation files go here
+│   ├── getting-started.md
+│   ├── deployment.md
+│   └── README.md
+├── src/
+│   ├── components/
+│   │   ├── DocsNavigation.tsx
+│   │   ├── MarkdownRenderer.tsx
+│   │   └── RefreshButton.tsx
+│   ├── hooks/
+│   │   └── useMarkdownFiles.ts
+│   ├── pages/
+│   │   └── Index.tsx
+│   └── lib/
+├── deployment/               # Deployment configurations
+│   ├── netlify.toml
+│   ├── vercel.json
+│   └── azure-static-web-apps.yml
+├── .github/
+│   └── workflows/
+│       ├── deploy-gh-pages.yml
+│       └── deploy-azure.yml
+└── package.json
 ```
 
-**Edit a file directly in GitHub**
+## 🌐 Deployment Options
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Netlify
+- **One-click deploy**: [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/yourusername/docsdeploy)
+- **Manual**: Push to GitHub and connect in Netlify dashboard
+- **Config**: Uses `deployment/netlify.toml`
 
-**Use GitHub Codespaces**
+### Vercel
+- **One-click deploy**: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/docsdeploy)
+- **Manual**: Import project from GitHub
+- **Config**: Uses `vercel.json`
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Azure Static Web Apps
+- **Manual**: Create Static Web App in Azure Portal
+- **Config**: Uses `deployment/azure-static-web-apps.yml`
 
-## What technologies are used for this project?
+### GitHub Pages
+- **Automatic**: Enable GitHub Actions in `.github/workflows/deploy-gh-pages.yml`
+- **Manual**: Enable Pages in repository settings
 
-This project is built with:
+## ⚙️ Configuration
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Environment Variables (Optional)
 
-## How can I deploy this project?
+For GitHub integration fallback when local docs aren't available:
 
-Simply open [Lovable](https://lovable.dev/projects/65677ddd-9a66-4388-a49b-c2d3a9e5874d) and click on Share -> Publish.
+```bash
+VITE_GITHUB_OWNER=yourusername      # GitHub username/organization
+VITE_GITHUB_REPO=your-docs-repo     # Repository name
+VITE_GITHUB_BRANCH=main             # Branch to read from
+VITE_DOCS_PATH=docs                 # Path to docs folder
+```
 
-## Can I connect a custom domain to my Lovable project?
+### Local Development
 
-Yes, you can!
+```bash
+# Install dependencies
+npm install
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+# Start development server
+npm run dev
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## 📝 Writing Documentation
+
+### File Organization
+- Create `.md` files in the `docs/` folder
+- Use descriptive filenames (e.g., `getting-started.md`)
+- Organize in subdirectories for complex documentation
+- The navigation automatically follows your folder structure
+
+### Markdown Features
+- GitHub Flavored Markdown support
+- Syntax highlighting for code blocks
+- Tables, lists, links, and images
+- Math expressions (via extensions)
+
+### Example Structure
+```
+docs/
+├── README.md                 # Overview/landing page
+├── getting-started.md        # Quick start guide
+├── api/
+│   ├── authentication.md
+│   └── endpoints.md
+├── guides/
+│   ├── installation.md
+│   └── configuration.md
+└── deployment.md            # Deployment instructions
+```
+
+## 🎨 Customization
+
+### Styling
+- Edit `src/index.css` for global styles
+- Modify `tailwind.config.ts` for theme customization
+- Update design tokens in CSS variables
+
+### Components
+- `DocsNavigation.tsx` - Sidebar navigation
+- `MarkdownRenderer.tsx` - Content rendering
+- `RefreshButton.tsx` - Refresh functionality
+
+## 🔧 Advanced Features
+
+### GitHub Integration
+- Automatic fallback to GitHub when local files unavailable
+- Supports private repositories with authentication
+- Configurable branch and folder paths
+
+### Navigation
+- Auto-generated from folder structure
+- Expandable/collapsible sections
+- Active page highlighting
+- Mobile-responsive sidebar
+
+### Performance
+- Built with Vite for fast development and builds
+- Lazy loading for large documentation sets
+- Optimized markdown parsing and rendering
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
+
+## 📄 License
+
+MIT License - feel free to use for personal or commercial projects.
+
+## 🆘 Support
+
+- Check the [deployment guide](docs/deployment.md)
+- Open an issue for bugs or feature requests
+- Join our community discussions
+
+---
+
+**Ready to deploy your documentation?** Choose your preferred platform above and get started in minutes!
