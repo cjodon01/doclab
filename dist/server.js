@@ -26,6 +26,8 @@ async function initializeDocsProvider() {
     }
     catch (error) {
         console.error('Failed to initialize docs provider:', error);
+        // Re-throw the error to prevent server from starting with invalid configuration
+        throw error;
     }
 }
 // API Routes

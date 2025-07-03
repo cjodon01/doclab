@@ -16,14 +16,20 @@ class LocalDocsAPI {
         try {
             const stats = await fs_1.default.promises.stat(this.docsPath);
             if (!stats.isDirectory()) {
-                return { valid: false, error: 'Docs path is not a directory' };
+                return { valid: false, error: `Path '${this.docsPath}' exists but is not a directory` };
             }
             return { valid: true };
         }
         catch (error) {
+            if (error.code === 'ENOENT') {
+                return {
+                    valid: false,
+                    error: `Local docs folder not found at '${this.docsPath}'`
+                };
+            }
             return {
                 valid: false,
-                error: error instanceof Error ? error.message : 'Unknown error'
+                error: `Error accessing local docs folder: ${error.message}`
             };
         }
     }
@@ -95,27 +101,80 @@ class DocsProvider {
         this.config = { source: 'local' };
     }
     async initialize() {
+        console.log('🔍 Initializing DocsProvider...');
         // First, try to use local docs
+        console.log('📁 Checking for local docs folder...');
         const localValidation = await this.localAPI.validateDocsFolder();
         if (localValidation.valid) {
-            console.log('Using local docs folder');
+            console.log('✅ Local docs folder found and validated. Using local source.');
             this.config = { source: 'local', path: 'docs' };
             return this.config;
         }
+        else {
+            console.log(`❌ Local docs validation failed: ${localValidation.error}`);
+            console.log('🔄 Attempting GitHub fallback...');
+        }
         // If local docs not available, try GitHub
-        if (this.githubAPI) {
+        if (!this.githubAPI) {
+            const missingVars = [];
+            if (!process.env.GITHUB_REPO_OWNER)
+                missingVars.push('GITHUB_REPO_OWNER');
+            if (!process.env.GITHUB_REPO_NAME)
+                missingVars.push('GITHUB_REPO_NAME');
+            console.error(`❌ GitHub client not initialized. Missing environment variables: ${missingVars.join(', ')}`);
+            throw new Error(`No valid documentation source found. Local docs failed: ${localValidation.error}. GitHub unavailable: Missing required environment variables (${missingVars.join(', ')}). Please ensure you have either a local "docs" folder or valid GitHub configuration.`);
+        }
+        console.log('🔍 Validating GitHub repository access...');
+        console.log(`📍 Repository: ${process.env.GITHUB_REPO_OWNER}/${process.env.GITHUB_REPO_NAME}`);
+        console.log(`📂 Docs path: ${process.env.GITHUB_DOCS_PATH || 'docs'}`);
+        console.log(`🔑 Token provided: ${process.env.GITHUB_TOKEN ? 'Yes' : 'No'}`);
+        try {
             const githubValidation = await this.githubAPI.validateRepository();
             if (githubValidation.valid) {
-                console.log('Using GitHub docs repository');
+                console.log('✅ GitHub repository validated successfully. Using GitHub source.');
                 this.config = { source: 'github' };
                 return this.config;
             }
+            else {
+                console.error(`❌ GitHub repository validation failed: ${githubValidation.error}`);
+                throw new Error(`No valid documentation source found. Local docs failed: ${localValidation.error}. GitHub validation failed: ${githubValidation.error}. Please ensure you have either a local "docs" folder or valid GitHub configuration with proper access permissions.`);
+            }
         }
-        throw new Error('No valid documentation source found. Please ensure you have either a local "docs" folder or valid GitHub configuration.');
+        catch (error) {
+            console.error('❌ Error during GitHub validation:', error);
+            throw new Error(`No valid documentation source found. Local docs failed: ${localValidation.error}. GitHub error: ${error.message}. Please ensure you have either a local "docs" folder or valid GitHub configuration.`);
+        }
     }
     async buildFileTree() {
         if (this.config.source === 'local') {
-            return await this.localAPI.buildFileTree();
+            try {
+                return await this.localAPI.buildFileTree();
+            }
+            catch (error) {
+                // If ENOENT error occurs, try to fallback to GitHub
+                if (error.code === 'ENOENT' && this.githubAPI) {
+                    console.log('🔄 Local docs became unavailable, attempting GitHub fallback...');
+                    try {
+                        const githubValidation = await this.githubAPI.validateRepository();
+                        if (githubValidation.valid) {
+                            console.log('✅ Successfully switched to GitHub source.');
+                            this.config = { source: 'github' };
+                            const githubTree = await this.githubAPI.buildFileTree();
+                            // Convert GitHub tree format to our format
+                            return githubTree.map((node) => ({
+                                name: node.name,
+                                path: node.path,
+                                type: node.type,
+                                children: node.children
+                            }));
+                        }
+                    }
+                    catch (githubError) {
+                        console.error('❌ GitHub fallback failed:', githubError);
+                    }
+                }
+                throw error;
+            }
         }
         else {
             const githubTree = await this.githubAPI.buildFileTree();
@@ -130,7 +189,27 @@ class DocsProvider {
     }
     async fetchFileContent(filePath) {
         if (this.config.source === 'local') {
-            return await this.localAPI.fetchFileContent(filePath);
+            try {
+                return await this.localAPI.fetchFileContent(filePath);
+            }
+            catch (error) {
+                // If ENOENT error occurs, try to fallback to GitHub
+                if (error.code === 'ENOENT' && this.githubAPI) {
+                    console.log('🔄 Local docs became unavailable, attempting GitHub fallback...');
+                    try {
+                        const githubValidation = await this.githubAPI.validateRepository();
+                        if (githubValidation.valid) {
+                            console.log('✅ Successfully switched to GitHub source.');
+                            this.config = { source: 'github' };
+                            return await this.githubAPI.fetchFileContent(filePath);
+                        }
+                    }
+                    catch (githubError) {
+                        console.error('❌ GitHub fallback failed:', githubError);
+                    }
+                }
+                throw error;
+            }
         }
         else {
             return await this.githubAPI.fetchFileContent(filePath);
