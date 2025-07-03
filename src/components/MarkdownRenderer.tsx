@@ -1,5 +1,6 @@
 import { marked } from 'marked';
 import { useEffect, useState } from 'react';
+import DOMPurify from 'dompurify';
 
 interface MarkdownRendererProps {
   content: string;
@@ -19,7 +20,12 @@ export const MarkdownRenderer = ({ content, title }: MarkdownRendererProps) => {
         });
 
         const html = await marked.parse(content);
-        setHtmlContent(html);
+        // Sanitize HTML to prevent XSS attacks
+        const sanitizedHtml = DOMPurify.sanitize(html, {
+          ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'img', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+          ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class', 'id']
+        });
+        setHtmlContent(sanitizedHtml);
       } catch (error) {
         console.error('Error rendering markdown:', error);
         setHtmlContent('<p>Error rendering markdown content</p>');

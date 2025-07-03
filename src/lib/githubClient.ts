@@ -158,6 +158,25 @@ export class GitHubAPI {
   }
 }
 
+function validateGitHubConfig(owner: string, repo: string, branch: string, docsPath: string): void {
+  // Input validation to prevent injection attacks
+  const githubNamePattern = /^[a-zA-Z0-9._-]+$/;
+  const pathPattern = /^[a-zA-Z0-9._/-]+$/;
+  
+  if (!githubNamePattern.test(owner)) {
+    throw new Error('Invalid GitHub owner format');
+  }
+  if (!githubNamePattern.test(repo)) {
+    throw new Error('Invalid GitHub repository format');
+  }
+  if (!githubNamePattern.test(branch)) {
+    throw new Error('Invalid GitHub branch format');
+  }
+  if (!pathPattern.test(docsPath)) {
+    throw new Error('Invalid docs path format');
+  }
+}
+
 export function createGitHubClient(): GitHubAPI | null {
   const owner = import.meta.env.VITE_GITHUB_OWNER;
   const repo = import.meta.env.VITE_GITHUB_REPO;
@@ -167,6 +186,13 @@ export function createGitHubClient(): GitHubAPI | null {
 
   if (!owner || !repo) {
     console.log('GitHub configuration missing. Set VITE_GITHUB_OWNER and VITE_GITHUB_REPO environment variables.');
+    return null;
+  }
+
+  try {
+    validateGitHubConfig(owner, repo, branch, docsPath);
+  } catch (error) {
+    console.error('Invalid GitHub configuration:', error);
     return null;
   }
 
