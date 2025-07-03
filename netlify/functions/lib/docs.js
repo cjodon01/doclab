@@ -9,8 +9,11 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const github_1 = require("./github");
 class LocalDocsAPI {
-    constructor(docsPath = 'docs') {
+    constructor(docsPath = process.env.LOCAL_DOCS_PATH || 'docs') {
         this.docsPath = path_1.default.resolve(docsPath);
+    }
+    getDocsPath() {
+        return this.docsPath;
     }
     async validateDocsFolder() {
         try {
@@ -96,7 +99,8 @@ class LocalDocsAPI {
 }
 class DocsProvider {
     constructor() {
-        this.localAPI = new LocalDocsAPI();
+        const localDocsPath = process.env.LOCAL_DOCS_PATH;
+        this.localAPI = new LocalDocsAPI(localDocsPath);
         this.githubAPI = (0, github_1.createGitHubClient)();
         this.config = { source: 'local', hasLocal: false, hasGitHub: false };
     }
@@ -132,14 +136,15 @@ class DocsProvider {
         // Determine configuration based on what's available
         const hasLocal = localValidation.valid;
         const hasGitHub = githubValidation.valid;
+        const docsPath = this.localAPI.getDocsPath();
         if (hasLocal && hasGitHub) {
             console.log('✅ Both local docs and GitHub are available. Using hybrid mode with local priority.');
-            this.config = { source: 'hybrid', path: 'docs', hasLocal: true, hasGitHub: true };
+            this.config = { source: 'hybrid', path: docsPath, hasLocal: true, hasGitHub: true };
         }
         else if (hasLocal) {
             console.log('✅ Local docs folder found and validated. Using local source.');
             console.log(`ℹ️ GitHub unavailable: ${githubValidation.error}`);
-            this.config = { source: 'local', path: 'docs', hasLocal: true, hasGitHub: false };
+            this.config = { source: 'local', path: docsPath, hasLocal: true, hasGitHub: false };
         }
         else if (hasGitHub) {
             console.log('✅ GitHub repository validated successfully. Using GitHub source.');
