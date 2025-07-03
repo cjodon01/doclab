@@ -12,7 +12,7 @@ Vercel provides excellent hosting for static React applications with automatic d
 
 ### Method 1: One-Click Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/docsdeploy)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cjodon01/docsdeploy)
 
 ### Method 2: Manual Deployment
 
