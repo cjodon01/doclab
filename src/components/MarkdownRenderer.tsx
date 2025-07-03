@@ -44,12 +44,12 @@ export const MarkdownRenderer = ({ content, title }: MarkdownRendererProps) => {
             prose-p:text-foreground
             prose-strong:text-foreground
             prose-code:bg-muted prose-code:text-foreground prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:font-mono
-            prose-pre:bg-docs-code-bg prose-pre:text-gray-100 prose-pre:border prose-pre:border-border prose-pre:rounded-lg prose-pre:p-6 prose-pre:overflow-x-auto prose-pre:shadow-lg prose-pre:font-mono prose-pre:text-sm prose-pre:leading-relaxed prose-pre:m-0
             prose-blockquote:border-l-primary
             prose-a:text-primary hover:prose-a:text-primary/80
             prose-ul:text-foreground
             prose-ol:text-foreground
-            prose-li:text-foreground"
+            prose-li:text-foreground
+            [&_pre]:!bg-docs-code-bg [&_pre]:!text-gray-100 [&_pre]:!border [&_pre]:!border-border [&_pre]:!rounded-lg [&_pre]:!p-6 [&_pre]:!overflow-x-auto [&_pre]:!shadow-lg [&_pre]:!font-mono [&_pre]:!text-sm [&_pre]:!leading-relaxed [&_pre]:!m-0"
           dangerouslySetInnerHTML={{ __html: htmlContent }}
         />
       </div>
